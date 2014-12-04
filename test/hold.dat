@@ -1,0 +1,10 @@
+{
+
+    "holding_id": "22115858660001551",
+    "created_by": "import",
+    "created_date": "2013-07-14Z",
+    "anies": [
+        "<?xml version=\"1.0\" encoding=\"UTF-16\"?>\n<record>\n <leader>00214cx a22000973 4500</leader>\n <controlfield tag=\"001\">398498</controlfield>\n <controlfield tag=\"004\">333281</controlfield>\n <controlfield tag=\"005\">20010412173201.0</controlfield>\n <controlfield tag=\"008\">0104120p 8 4001aueng0000000</controlfield>\n <datafield ind1=\"1\" ind2=\" \" tag=\"014\">\n <subfield code=\"a\">94-B3418</subfield>\n </datafield>\n <datafield ind1=\"0\" ind2=\" \" tag=\"852\">\n <subfield code=\"b\">GC</subfield>\n <subfield code=\"c\">BOOKS:L2</subfield>\n <subfield code=\"h\">P93.5</subfield>\n <subfield code=\"i\">.T84 1992</subfield>\n <subfield code=\"t\">Copy 1</subfield>\n </datafield>\n </record>"
+    ]
+
+}

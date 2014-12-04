@@ -1,0 +1,55 @@
+{
+
+    "link": "https://api-na.hosted.exlibrisgroup.com/almaws/v1/bibs/9922405930001551/holdings/22115858660001551/items/23115858650001551",
+    "bib_data": {
+        "title": "Envisioning information /",
+        "author": "Tufte, Edward R.,",
+        "issn": null,
+        "link": "https://api-na.hosted.exlibrisgroup.com/almaws/v1/bibs/9922405930001551",
+        "mms_id": 9922405930001552,
+        "complete_edition": "3rd printing, with revisions.",
+        "place_of_publication": "Cheshire, Conn. :",
+        "publisher_const": "Graphics Press",
+        "network_number": [
+            "(CMalG)333281-gettydb-Voyager",
+            "(OCoLC)28384525",
+            "333281"
+        ]
+    },
+    "holding_data": {
+        "link": "https://api-na.hosted.exlibrisgroup.com/almaws/v1/bibs/9922405930001551/holdings/22115858660001551",
+        "holding_id": "22115858660001551",
+        "call_number": "P93.5 .T84 1992",
+        "temp_library": {
+            "value": null,
+            "desc": null
+        },
+        "temp_location": {
+            "value": null,
+            "desc": null
+        }
+    },
+    "item_data": {
+        "pid": "23115858650001551",
+        "barcode": "33125006577916",
+        "description": null,
+        "library": {
+            "value": "GC",
+            "desc": "General Collections"
+        },
+        "location": {
+            "value": "BOOKS:L2",
+            "desc": "BOOKS:L2"
+        },
+        "requested": false,
+        "physical_material_type": {
+            "value": "BOOK",
+            "desc": "Book"
+        },
+        "process_type": {
+            "value": "LOAN",
+            "desc": "Loan"
+        }
+    }
+
+}
