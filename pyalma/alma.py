@@ -46,7 +46,7 @@ class Alma(object):
         if apikey is None:
             raise Exception("Please supply an API key")
         if region not in ENDPOINTS:
-            msg = 'Invalid Region. Must be one of {}'.format(ENDPOINTS.keys())
+            msg = 'Invalid Region. Must be one of {}'.format(list(ENDPOINTS))
             raise Exception(msg)
         self.apikey = apikey
         self.endpoint = ENDPOINTS[region]
