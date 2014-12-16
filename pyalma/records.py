@@ -28,3 +28,14 @@ class Bib(Record):
 
 	def __init__(self, data={}):
 		super().__init__('bib', data)
+
+
+class Holding(Record):
+	pass
+
+
+class Item(Record):
+	pass
+
+
+

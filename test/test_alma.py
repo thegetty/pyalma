@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from importlib import reload
@@ -86,12 +87,45 @@ class TestAlmaGETRequests(unittest.TestCase):
                 content_type='application/json',
                 body=f.read())
 
+    def buildXMLResponses(self):
+        # bib mock response
+        biburl = self.api.baseurl + r'bibs/\d+'
+        bib_re = re.compile(biburl)
+        with open('test/bib.dat.xml', 'r') as f:
+            responses.add(responses.GET, bib_re, 
+                status=200, 
+                content_type='application/xml',
+                body=f.read())
+
     @responses.activate
     def test_alma_request(self):
         self.buildResponses()
         resp = self.api.request('GET', 'bib', {'mms_id': 9922405930001552})
         data = resp.json()
         self.assertEqual(data['created_date'], '2013-07-14Z')
+
+    @responses.activate
+    def test_extract_content_xml(self):
+        self.buildXMLResponses()
+        resp = self.api.request('GET', 'bib', {'mms_id': 9922405930001552})
+        data = self.api.extract_content(resp)
+        with open('test/bib.dat.xml', 'r') as dat:
+            self.assertEqual(data, dat.read())
+
+    @responses.activate
+    def test_extract_content_json(self):
+        self.buildResponses()
+        resp = self.api.request('GET', 'bib', {'mms_id': 9922405930001552})
+        data = self.api.extract_content(resp)
+        with open('test/bib.dat', 'r') as dat:
+            self.assertEqual(data, json.loads(dat.read()))
+
+    @responses.activate
+    def test_alma_get_bib(self):
+        self.buildResponses()
+        bib_data = self.api.get_bib(9922405930001552)
+        with open('test/bib.dat', 'r') as dat:
+            self.assertEqual(bib_data, json.loads(dat.read()))
 
     @responses.activate
     def test_alma_bib(self):
