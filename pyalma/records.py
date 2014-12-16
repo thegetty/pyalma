@@ -29,6 +29,30 @@ class Bib(Record):
 	def __init__(self, data={}):
 		super().__init__('bib', data)
 
+	@property
+	def mms_id(self):
+		return self.data.get('mms_id')
+
+	@property
+	def created_by(self):
+		return self.data.get('created_by')
+
+	@property
+	def created_date(self):
+		return self.data.get('created_date')
+
+	@property
+	def last_modified_by(self):
+		return self.data.get('last_modified_by')
+
+	@property
+	def last_modified_date(self):
+		return self.data.get('last_modified_date')
+
+	@property
+	def holdings_link(self):
+		return self.data.get('holdings').get('link')
+
 
 class Holding(Record):
 	pass
