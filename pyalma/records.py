@@ -55,7 +55,29 @@ class Bib(Record):
 
 
 class Holding(Record):
-	pass
+
+	def __init__(self, data={}):
+		super().__init__('holding', data)
+
+	@property
+	def holding_id(self):
+		return self.data.get('holding_id')
+
+	@property
+	def created_by(self):
+		return self.data.get('created_by')
+
+	@property
+	def created_date(self):
+		return self.data.get('created_date')
+
+	@property
+	def last_modified_by(self):
+		return self.data.get('last_modified_by')
+
+	@property
+	def last_modified_date(self):
+		return self.data.get('last_modified_date')
 
 
 class Item(Record):

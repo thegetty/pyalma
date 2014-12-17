@@ -32,3 +32,28 @@ class TestBibRecord(unittest.TestCase):
         bib = records.Bib(self.bibdata)
         self.assertIsInstance(bib.marc, pymarc.record.Record)
         self.assertEqual(bib.marc.author(), 'Tufte, Edward R., 1942-')
+
+
+class TestHoldingRecord(unittest.TestCase):
+
+    def setUp(self):
+        with open('test/hold.dat', 'r') as f:
+            self.holdingdata = json.loads(f.read())
+
+    def assertHoldingEqual(self, holding):
+        self.assertEqual(holding.data['holding_id'], 22115858660001551)
+        self.assertEqual(holding.data['created_date'], '2013-07-14Z')
+
+    def test_holding_load(self):
+        holding = records.Holding()
+        holding.load(self.holdingdata)
+        self.assertHoldingEqual(holding)        
+
+    def test_holding_init(self):
+        holding = records.Holding(self.holdingdata)
+        self.assertHoldingEqual(holding)
+
+    def test_holding_parse_marc(self):
+        holding = records.Holding(self.holdingdata)
+        self.assertIsInstance(holding.marc, pymarc.record.Record)
+        self.assertEqual(holding.marc.get_fields['014'] '94-B3418')
