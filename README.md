@@ -60,7 +60,7 @@ Developer Changes
 
 12. When your branch has been reviewed, approved, and merged, you can pull the master and delete your issue branch
 
-        (ENV)$ checkout master
+        (ENV)$ git checkout master
         (ENV)$ git status
         (ENV)$ git pull origin master
         (ENV)$ git branch -d <issue-name>
