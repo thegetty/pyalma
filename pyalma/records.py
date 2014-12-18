@@ -83,5 +83,66 @@ class Holding(Record):
 class Item(Record):
 	pass
 
+class Request(Record):
+	
+	def __init__(self, data={}):
+		super().__init__('request', data)
+
+	@property
+	def title(self):
+		return self.data.get('title')
+
+	@property
+	def author(self):
+		return self.data.get('author')
+
+	@property
+	def description(self):
+		return self.data.get('description')
+
+	@property
+	def comment(self):
+		return self.data.get('comment')
+
+	@property
+	def request_id(self):
+		return self.data.get('request_id')
+
+	@property
+	def request_type(self):
+		return self.data.get('request_type')
+
+	@property
+	def pickup_location(self):
+		return self.data.get('pickup_location')
+
+	@property
+	def pickup_location_type(self):
+		return self.data.get('pickup_location_type')
+
+	@property
+	def pickup_location_library(self):
+		return self.data.get('pickup_location_library')
+
+	@property
+	def material_type_value(self):
+		return self.data.get('material_type').get('value')
+
+	@property
+	def request_status(self):
+		return self.data.get('request_status')
+
+	@property
+	def place_in_queue(self):
+		return self.data.get('place_in_queue')
+
+	@property
+	def request_date(self):
+		return self.data.get('request_date')
+
+
+	
+	
+
 
 
