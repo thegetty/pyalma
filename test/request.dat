@@ -1,0 +1,18 @@
+   {
+      "title": "Test title",
+      "author": null,
+      "description": null,
+      "comment": null,
+      "request_id": "83013520000121",
+      "request_type": "HOLD",
+      "pickup_location": "Burns",
+      "pickup_location_type": "LIBRARY",
+      "pickup_location_library": "BURNS",
+      "material_type": {
+        "value": "BK",
+        "desc": "Book"
+      },
+      "request_status": "NOT_STARTED",
+      "place_in_queue": 1,
+      "request_date": "2013-11-12Z"
+    }
