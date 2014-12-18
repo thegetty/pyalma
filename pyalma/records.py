@@ -140,6 +140,31 @@ class Request(Record):
 	def request_date(self):
 		return self.data.get('request_date')
 
+class Availability(Record):
+
+	def __init__(self, data={}):
+		super().__init__('availability', data)
+
+	@property
+	def from_time(self):
+		return self.data.get('from_time')
+
+	@property
+	def to_time(self):
+		return self.data.get('to_time')
+
+	@property
+	def user_id(self):
+		return self.data.get('user_id')
+
+	@property
+	def user_full_name(self):
+		return self.data.get('user_full_name')
+
+	@property
+	def reason(self):
+		return self.data.get('reason')
+
 
 	
 	
