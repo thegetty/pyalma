@@ -32,3 +32,23 @@ class TestBibRecord(unittest.TestCase):
         bib = records.Bib(self.bibdata)
         self.assertIsInstance(bib.marc, pymarc.record.Record)
         self.assertEqual(bib.marc.author(), 'Tufte, Edward R., 1942-')
+
+
+class TestRequestRecord(unittest.TestCase):
+
+    def setUp(self):
+        with open('test/request.dat', 'r') as f:
+            self.requestdata = json.loads(f.read())
+
+    def assertRequestEqual(self, request):
+        self.assertEqual(request.data['title'], 'Test title')
+        self.assertEqual(request.data['request_type'], 'HOLD')
+
+    def test_request_load(self):
+        request = records.Request()
+        request.load(self.requestdata)
+        self.assertRequestEqual(request)        
+
+    def test_request_init(self):
+        request = records.Request(self.requestdata)
+        self.assertRequestEqual(request)
