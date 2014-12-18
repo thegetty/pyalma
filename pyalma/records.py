@@ -89,6 +89,10 @@ class Request(Record):
 		super().__init__('request', data)
 
 	@property
+	def user_primary_id(self):
+		return self.data.get('user_primary_id')
+
+	@property
 	def title(self):
 		return self.data.get('title')
 
@@ -125,8 +129,24 @@ class Request(Record):
 		return self.data.get('pickup_location_library')
 
 	@property
-	def material_type_value(self):
-		return self.data.get('material_type').get('value')
+	def pickup_location_circulation_desk(self):
+		return self.data.get('pickup_location_circulation_desk')
+
+	@property
+	def target_destination(self):
+		return self.data.get('target_destination')
+
+	@property
+	def material_type(self):
+		return self.data.get('material_type')
+
+	@property
+	def last_interest_date(self):
+		return self.data.get('last_interest_date')
+
+	@property
+	def partial_digitization(self):
+		return self.data.get('partial_digitization')
 
 	@property
 	def request_status(self):
@@ -139,6 +159,30 @@ class Request(Record):
 	@property
 	def request_date(self):
 		return self.data.get('request_date')
+
+	@property
+	def task_name(self):
+		return self.data.get('task_name')
+
+	@property
+	def expiry_date(self):
+		return self.data.get('expiry_date')
+
+	@property
+	def booking_start_date(self):
+		return self.data.get('booking_start_date')
+
+	@property
+	def booking_end_date(self):
+		return self.data.get('booking_end_date')
+
+	@property
+	def adjusted_booking_start_date(self):
+		return self.data.get('adjusted_booking_start_date')
+
+	@property
+	def adjusted_booking_end_date(self):
+		return self.data.get('adjusted_booking_end_date')
 
 class Availability(Record):
 
