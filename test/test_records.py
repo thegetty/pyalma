@@ -41,7 +41,7 @@ class TestHoldingRecord(unittest.TestCase):
             self.holdingdata = json.loads(f.read())
 
     def assertHoldingEqual(self, holding):
-        self.assertEqual(holding.data['holding_id'], 22115858660001551)
+        self.assertEqual(holding.data['holding_id'], '22115858660001551')
         self.assertEqual(holding.data['created_date'], '2013-07-14Z')
 
     def test_holding_load(self):
@@ -56,7 +56,7 @@ class TestHoldingRecord(unittest.TestCase):
     def test_holding_parse_marc(self):
         holding = records.Holding(self.holdingdata)
         self.assertIsInstance(holding.marc, pymarc.record.Record)
-        self.assertEqual(holding.marc.get_fields['014'] '94-B3418')
+        self.assertEqual(holding.marc['014']['a'], '94-B3418')
 
 
 class TestRequestRecord(unittest.TestCase):
