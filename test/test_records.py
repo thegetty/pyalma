@@ -77,3 +77,24 @@ class TestRequestRecord(unittest.TestCase):
     def test_request_init(self):
         request = records.Request(self.requestdata)
         self.assertRequestEqual(request)
+
+
+class TestAvailabilityRecord(unittest.TestCase):
+
+    def setUp(self):
+        with open('test/availability.dat', 'r') as f:
+            self.availabilitydata = json.loads(f.read())
+
+    def assertAvailabilityEqual(self, availability):
+        self.assertEqual(availability.data['from_time'], 1401691527672)
+        self.assertEqual(availability.data['to_time'], 1401691527672)
+
+    def test_availability_load(self):
+        availability = records.Availability()
+        availability.load(self.availabilitydata)
+        self.assertAvailabilityEqual(availability)        
+
+    def test_availability_init(self):
+        availability = records.Availability(self.availabilitydata)
+        self.assertAvailabilityEqual(availability)
+
