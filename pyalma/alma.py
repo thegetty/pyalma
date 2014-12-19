@@ -77,7 +77,7 @@ class Alma(object):
         if 'json' in ctype:
             return response.json()
         else:
-            return response.text
+            return response.content.decode('utf-8')
 
     '''
     Below are convenience methods that call request() and extract_content() and
