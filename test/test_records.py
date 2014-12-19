@@ -59,6 +59,33 @@ class TestHoldingRecord(unittest.TestCase):
         self.assertEqual(holding.marc['014']['a'], '94-B3418')
 
 
+class TestItemRecord(unittest.TestCase):
+
+    def setUp(self):
+        with open('test/item.dat', 'r') as f:
+            self.itemdata = json.loads(f.read())
+
+    def assertItemEqual(self, item):
+        self.assertEqual(item.data['link'], 'https://api-na.hosted.exlibrisgroup.com/almaws/v1/bibs/9922405930001551/holdings/22115858660001551/items/23115858650001551')
+        self.assertEqual(item.data['item_data']['pid'], '23115858650001551')
+        self.assertEqual(item.data['holding_data']['holding_id'], '22115858660001551')
+        self.assertEqual(item.data['bib_data']['mms_id'], 9922405930001552)
+        self.assertEqual(item.data['bib_data']['network_number'], [
+            "(CMalG)333281-gettydb-Voyager",
+            "(OCoLC)28384525",
+            "333281"
+        ])
+
+    def test_item_load(self):
+        item = records.Item()
+        item.load(self.itemdata)
+        self.assertItemEqual(item)        
+
+    def test_item_init(self):
+        item = records.Item(self.itemdata)
+        self.assertItemEqual(item)
+
+
 class TestRequestRecord(unittest.TestCase):
 
     def setUp(self):
