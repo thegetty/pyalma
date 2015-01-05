@@ -57,35 +57,38 @@ class TestAlmaSetup(unittest.TestCase):
 
 
 class TestAlmaGETRequests(unittest.TestCase):
-
+    maxDiff = None
+    
     def setUp(self):
-        self.api = alma.Alma()
-
+        self.api = alma.Alma(apikey='unreal', region='EU')
+    
     def buildResponses(self):
         # bib mock response
-        biburl = self.api.baseurl + r'bibs/\d+'
+        biburl = self.api.baseurl + r'bibs/\d+$'
         bib_re = re.compile(biburl)
-        with open('test/bib.dat', 'r') as f:
+        with open('test/bib.dat', 'r') as b:
             responses.add(responses.GET, bib_re, 
                 status=200, 
                 content_type='application/json',
-                body=f.read())
+                body=b.read())
+
         # holdings mock response
-        holdurl = biburl + r'/holdings/\d+'
+        holdurl = self.api.baseurl + r'bibs/\d+/holdings/\d+$'
         hold_re = re.compile(holdurl)
-        with open('test/hold.dat', 'r') as f:
+        with open('test/hold.dat', 'r') as h:
             responses.add(responses.GET, hold_re, 
                 status=200, 
                 content_type='application/json',
-                body=f.read())
+                body=h.read())
+
         # item mock response
-        itemurl = holdurl + r'/items/\d+'
+        itemurl = self.api.baseurl + r'bibs/\d+/holdings/\d+/items/\d+$'
         item_re = re.compile(itemurl)
-        with open('test/item.dat', 'r') as f:
+        with open('test/item.dat', 'r') as i:
             responses.add(responses.GET, item_re, 
                 status=200, 
                 content_type='application/json',
-                body=f.read())
+                body=i.read())
 
     def buildXMLResponses(self):
         # bib mock response
@@ -132,7 +135,34 @@ class TestAlmaGETRequests(unittest.TestCase):
         self.buildResponses()
         bib = self.api.bib(9922405930001552)
         self.assertIsInstance(bib, records.Bib)
-
+    
+    @responses.activate
+    def test_alma_get_holding(self):
+        from pprint import pprint
+        self.buildResponses()
+        holding_data = self.api.get_holding(9922405930001552, 22115858660001551)
+        with open('test/hold.dat', 'r') as dat:
+            self.assertEqual(holding_data, json.loads(dat.read()))
+    
+    @responses.activate
+    def test_alma_holding(self):
+        self.buildResponses()
+        holding = self.api.holding(9922405930001552, 22115858660001551)
+        self.assertIsInstance(holding, records.Holding)
+    
+    @responses.activate
+    def test_alma_get_item(self):
+        self.buildResponses()
+        item_data = self.api.get_item(9922405930001552, 22115858660001551, 23115858650001551)
+        with open('test/item.dat', 'r') as dat:
+            self.assertEqual(item_data, json.loads(dat.read()))
+    
+    @responses.activate
+    def test_alma_item(self):
+        self.buildResponses()
+        item = self.api.item(9922405930001552, 22115858660001551, 23115858650001551)
+        self.assertIsInstance(item, records.Item)
+    
 
 if __name__ == '__main__':
     unittest.main()

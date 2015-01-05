@@ -22,7 +22,7 @@ class TestBibRecord(unittest.TestCase):
     def test_bib_load(self):
         bib = records.Bib()
         bib.load(self.bibdata)
-        self.assertBibEqual(bib)        
+        self.assertBibEqual(bib)
 
     def test_bib_init(self):
         bib = records.Bib(self.bibdata)
@@ -47,7 +47,7 @@ class TestHoldingRecord(unittest.TestCase):
     def test_holding_load(self):
         holding = records.Holding()
         holding.load(self.holdingdata)
-        self.assertHoldingEqual(holding)        
+        self.assertHoldingEqual(holding)
 
     def test_holding_init(self):
         holding = records.Holding(self.holdingdata)
@@ -79,7 +79,7 @@ class TestItemRecord(unittest.TestCase):
     def test_item_load(self):
         item = records.Item()
         item.load(self.itemdata)
-        self.assertItemEqual(item)        
+        self.assertItemEqual(item)
 
     def test_item_init(self):
         item = records.Item(self.itemdata)
@@ -99,7 +99,7 @@ class TestRequestRecord(unittest.TestCase):
     def test_request_load(self):
         request = records.Request()
         request.load(self.requestdata)
-        self.assertRequestEqual(request)        
+        self.assertRequestEqual(request)
 
     def test_request_init(self):
         request = records.Request(self.requestdata)
@@ -119,7 +119,7 @@ class TestAvailabilityRecord(unittest.TestCase):
     def test_availability_load(self):
         availability = records.Availability()
         availability.load(self.availabilitydata)
-        self.assertAvailabilityEqual(availability)        
+        self.assertAvailabilityEqual(availability)
 
     def test_availability_init(self):
         availability = records.Availability(self.availabilitydata)
