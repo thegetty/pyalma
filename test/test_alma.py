@@ -57,10 +57,11 @@ class TestAlmaSetup(unittest.TestCase):
 
 
 class TestAlmaGETRequests(unittest.TestCase):
-
+    maxDiff = None
+    
     def setUp(self):
         self.api = alma.Alma()
-
+    
     def buildResponses(self):
         # bib mock response
         biburl = self.api.baseurl + r'bibs/\d+'
@@ -132,6 +133,32 @@ class TestAlmaGETRequests(unittest.TestCase):
         self.buildResponses()
         bib = self.api.bib(9922405930001552)
         self.assertIsInstance(bib, records.Bib)
+    
+    @responses.activate
+    def test_alma_get_holding(self):
+    	self.buildResponses()
+    	holding_data = self.api.get_holding(9922405930001552, 22115858660001551)
+    	with open('test/hold.dat', 'r') as dat:
+    		self.assertEqual(holding_data, json.loads(dat.read()))
+    
+    @responses.activate
+    def test_alma_holding(self):
+    	self.buildResponses()
+    	holding = self.api.holding(9922405930001552, 22115858660001551)
+    	self.assertIsInstance(holding, records.Holding)
+    
+    @responses.activate
+    def test_alma_get_item(self):
+        self.buildResponses()
+        item_data = self.api.get_item(9922405930001552, 22115858660001551, 23115858650001551)
+        with open('test/item.dat', 'r') as dat:
+            self.assertEqual(item_data, json.loads(dat.read()))
+    
+    @responses.activate
+    def test_alma_item(self):
+        self.buildResponses()
+        item = self.api.item(9922405930001552, 22115858660001551, 23115858650001551)
+        self.assertIsInstance(item, records.Item)
 
 
 if __name__ == '__main__':

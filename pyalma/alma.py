@@ -95,7 +95,8 @@ class Alma(object):
         pass
 
     def get_holding(self, mms_id, holding_id, accept='json'):
-        pass
+        response = self.request('GET', 'holding', {'mms_id':mms_id, 'holding_id':holding_id}, accept=accept)
+        return self.extract_content(response)
 
     def put_holding(self, mms_id, holding_id, data, content_type='json',
                     accept='json'):
@@ -105,7 +106,8 @@ class Alma(object):
         pass
 
     def get_item(self, mms_id, holding_id, item_pid, accept='json'):
-        pass
+        response = self.request('GET', 'item', {'mms_id':mms_id, 'holding_id':holding_id, 'item_pid':item_pid}, accept=accept)
+        return self.extract_content(response)
 
     def del_item(self, mms_id, holding_id, item_pid):
         pass
@@ -170,13 +172,15 @@ class Alma(object):
         pass
 
     def holding(self, mms_id, holding_id):
-        pass
+        data = self.get_holding(mms_id, holding_id)
+        return records.Holding(data)
 
     def items(self, mms_id, holding_id=None):
         pass
 
     def item(self, mms_id, holding_id, item_pid):
-        pass
+        data = self.get_item(mms_id, holding_id, item_pid)
+        return records.Item(data)
 
 
 class HTTPError(Exception):
