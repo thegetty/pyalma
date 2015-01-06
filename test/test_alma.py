@@ -24,15 +24,15 @@ class TestAlmaSetup(unittest.TestCase):
         self.assertEqual(api.endpoint, alma.ENDPOINTS['EU'])
 
     def test_init_errors(self):
-        self.assertRaises(Exception, alma.Alma, **{'apikey':None})
-        self.assertRaises(Exception, alma.Alma, **{'region':None})
+        self.assertRaises(Exception, alma.Alma, **{'apikey': None})
+        self.assertRaises(Exception, alma.Alma, **{'region': None})
         self.assertRaises(Exception, alma.Alma, **{'region': 'XX'})
 
     def test_init_env_vars(self):
         api = alma.Alma()
         self.assertEqual(api.apikey, 'my fake key')
         self.assertEqual(api.endpoint, alma.ENDPOINTS['APAC'])
-    
+
     def test_baseurl(self):
         api = alma.Alma()
         url = 'https://api-ap.hosted.exlibrisgroup.com/almaws/v1/'
@@ -58,47 +58,86 @@ class TestAlmaSetup(unittest.TestCase):
 
 class TestAlmaGETRequests(unittest.TestCase):
     maxDiff = None
-    
+
     def setUp(self):
         self.api = alma.Alma(apikey='unreal', region='EU')
-    
+
     def buildResponses(self):
         # bib mock response
         biburl = self.api.baseurl + r'bibs/\d+$'
         bib_re = re.compile(biburl)
         with open('test/bib.dat', 'r') as b:
-            responses.add(responses.GET, bib_re, 
-                status=200, 
-                content_type='application/json',
-                body=b.read())
+            responses.add(responses.GET, bib_re,
+                          status=200,
+                          content_type='application/json',
+                          body=b.read())
 
         # holdings mock response
         holdurl = self.api.baseurl + r'bibs/\d+/holdings/\d+$'
         hold_re = re.compile(holdurl)
         with open('test/hold.dat', 'r') as h:
-            responses.add(responses.GET, hold_re, 
-                status=200, 
-                content_type='application/json',
-                body=h.read())
+            responses.add(responses.GET, hold_re,
+                          status=200,
+                          content_type='application/json',
+                          body=h.read())
 
         # item mock response
         itemurl = self.api.baseurl + r'bibs/\d+/holdings/\d+/items/\d+$'
         item_re = re.compile(itemurl)
         with open('test/item.dat', 'r') as i:
-            responses.add(responses.GET, item_re, 
-                status=200, 
-                content_type='application/json',
-                body=i.read())
+            responses.add(responses.GET, item_re,
+                          status=200,
+                          content_type='application/json',
+                          body=i.read())
+
+        # bib_requests mock response
+        bib_requestsurl = self.api.baseurl + r'bibs/\d+/requests'
+        bib_requests_re = re.compile(bib_requestsurl)
+        with open('test/request.dat', 'r') as f:
+            responses.add(responses.GET, bib_requests_re,
+                          status=200,
+                          content_type='application/json',
+                          body=f.read())
+
+        # item_requests mock response
+        item_requestsurl = self.api.baseurl + \
+            r'bibs/\d+/holdings/\d+/items/\d+/requests'
+        item_requests_re = re.compile(item_requestsurl)
+        with open('test/request.dat', 'r') as f:
+            responses.add(responses.GET, item_requests_re,
+                          status=200,
+                          content_type='application/json',
+                          body=f.read())
+
+        # bib_booking_availability mock response
+        bib_booking_availabilityurl = self.api.baseurl + \
+            r'bibs/\d+/booking-availability'
+        bib_booking_availability_re = re.compile(bib_booking_availabilityurl)
+        with open('test/availability.dat', 'r') as f:
+            responses.add(responses.GET, bib_booking_availability_re,
+                          status=200,
+                          content_type='application/json',
+                          body=f.read())
+
+        # item_booking_availability mock response
+        item_booking_availabilityurl = self.api.baseurl + \
+            r'bibs/\d+/holdings/\d+/items/\d+/booking-availability'
+        item_booking_availability_re = re.compile(item_booking_availabilityurl)
+        with open('test/availability.dat', 'r') as f:
+            responses.add(responses.GET, item_booking_availability_re,
+                          status=200,
+                          content_type='application/json',
+                          body=f.read())
 
     def buildXMLResponses(self):
         # bib mock response
         biburl = self.api.baseurl + r'bibs/\d+'
         bib_re = re.compile(biburl)
         with open('test/bib.dat.xml', 'r') as f:
-            responses.add(responses.GET, bib_re, 
-                status=200, 
-                content_type='application/xml',
-                body=f.read())
+            responses.add(responses.GET, bib_re,
+                          status=200,
+                          content_type='application/xml',
+                          body=f.read())
 
     @responses.activate
     def test_alma_request(self):
@@ -135,34 +174,82 @@ class TestAlmaGETRequests(unittest.TestCase):
         self.buildResponses()
         bib = self.api.bib(9922405930001552)
         self.assertIsInstance(bib, records.Bib)
-    
+
     @responses.activate
     def test_alma_get_holding(self):
         from pprint import pprint
         self.buildResponses()
-        holding_data = self.api.get_holding(9922405930001552, 22115858660001551)
+        holding_data = self.api.get_holding(
+            9922405930001552,
+            22115858660001551)
         with open('test/hold.dat', 'r') as dat:
             self.assertEqual(holding_data, json.loads(dat.read()))
-    
+
     @responses.activate
     def test_alma_holding(self):
         self.buildResponses()
         holding = self.api.holding(9922405930001552, 22115858660001551)
         self.assertIsInstance(holding, records.Holding)
-    
+
     @responses.activate
     def test_alma_get_item(self):
         self.buildResponses()
-        item_data = self.api.get_item(9922405930001552, 22115858660001551, 23115858650001551)
+        item_data = self.api.get_item(
+            9922405930001552,
+            22115858660001551,
+            23115858650001551)
         with open('test/item.dat', 'r') as dat:
             self.assertEqual(item_data, json.loads(dat.read()))
-    
+
     @responses.activate
     def test_alma_item(self):
         self.buildResponses()
-        item = self.api.item(9922405930001552, 22115858660001551, 23115858650001551)
+        item = self.api.item(
+            9922405930001552,
+            22115858660001551,
+            23115858650001551)
         self.assertIsInstance(item, records.Item)
-    
+
+    @responses.activate
+    def test_alma_get_bib_requests(self):
+        self.buildResponses()
+        bib_requests_data = self.api.get_bib_requests(9922405930001552)
+        with open('test/request.dat', 'r') as dat:
+            self.assertEqual(bib_requests_data, json.loads(dat.read()))
+
+    @responses.activate
+    def test_alma_get_item_requests(self):
+        self.buildResponses()
+        item_requests_data = self.api.get_item_requests(9922405930001552,
+                                                        22115858660001551,
+                                                        23115858650001551)
+        with open('test/request.dat', 'r') as dat:
+            self.assertEqual(item_requests_data, json.loads(dat.read()))
+
+    @responses.activate
+    def test_alma_get_bib_booking_availability(self):
+        self.buildResponses()
+        bib_booking_availability_data = self.api.get_bib_booking_availability(
+            9922405930001552)
+        with open('test/availability.dat', 'r') as dat:
+            self.assertEqual(
+                bib_booking_availability_data,
+                json.loads(
+                    dat.read()))
+
+    @responses.activate
+    def test_alma_get_item_booking_availability(self):
+        self.buildResponses()
+        item_booking_availability_data = self.api.get_item_booking_availability(
+            9922405930001552,
+            22115858660001551,
+            23115858650001551)
+        with open('test/availability.dat', 'r') as dat:
+            self.assertEqual(
+                item_booking_availability_data,
+                json.loads(
+                    dat.read()))
+
 
 if __name__ == '__main__':
     unittest.main()
