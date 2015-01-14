@@ -95,7 +95,10 @@ class Alma(object):
         return self.extract_content(response)
 
     def put_bib(self, mms_id, data, content_type='json', accept='json'):
-        pass
+        response = self.request(
+            'PUT', 'bib', {
+                'mms_id': mms_id}, data=data, accept=accept)
+        return self.extract_content(response)
 
     def get_holdings(self, mms_id, accept='json'):
         pass
@@ -108,7 +111,10 @@ class Alma(object):
 
     def put_holding(self, mms_id, holding_id, data, content_type='json',
                     accept='json'):
-        pass
+        response = self.request(
+            'PUT', 'holding', {
+                'mms_id': mms_id, 'holding_id': holding_id}, data=data, accept=accept)
+        return self.extract_content(response)
 
     def get_items(self, mms_id, holding_id, accept='json'):
         pass
