@@ -312,8 +312,9 @@ class TestAlmaPUTRequests(unittest.TestCase):
     @responses.activate
     def test_alma_put_bib(self):
         self.buildResponses()
+        bib_sent = 'test/bib2.dat'
         bib_data = self.api.put_bib(9922405930001552,
-            'test/bib2.dat')
+            'bib_sent.text')
         with open('test/bib2.dat', 'r') as dat:
             self.assertEqual(bib_data, json.loads(dat.read()))
 
@@ -321,10 +322,11 @@ class TestAlmaPUTRequests(unittest.TestCase):
     def test_alma_put_holding(self):
         from pprint import pprint
         self.buildResponses()
+        holding_sent = 'test/hold2.dat'
         holding_data = self.api.put_holding(
             9922405930001552,
             22115858660001551,
-            'test/hold2.dat')
+            'holding_sent.text')
         with open('test/hold2.dat', 'r') as dat:
             self.assertEqual(holding_data, json.loads(dat.read()))
 
