@@ -5,7 +5,6 @@ from importlib import reload
 import unittest
 
 import responses
-import requests
 
 from pyalma import alma, records
 
@@ -177,7 +176,6 @@ class TestAlmaGETRequests(unittest.TestCase):
 
     @responses.activate
     def test_alma_get_holding(self):
-        from pprint import pprint
         self.buildResponses()
         holding_data = self.api.get_holding(
             9922405930001552,
@@ -233,17 +231,15 @@ class TestAlmaGETRequests(unittest.TestCase):
             9922405930001552)
         with open('test/availability.dat', 'r') as dat:
             self.assertEqual(
-                bib_booking_availability_data,
-                json.loads(
-                    dat.read()))
+                bib_booking_availability_data, json.loads(dat.read()))
 
     @responses.activate
     def test_alma_get_item_booking_availability(self):
         self.buildResponses()
-        item_booking_availability_data = self.api.get_item_booking_availability(
-            9922405930001552,
-            22115858660001551,
-            23115858650001551)
+        item_booking_availability_data = \
+            self.api.get_item_booking_availability(9922405930001552,
+                                                   22115858660001551,
+                                                   23115858650001551)
         with open('test/availability.dat', 'r') as dat:
             self.assertEqual(
                 item_booking_availability_data,
@@ -271,7 +267,7 @@ class TestAlmaPUTRequests(unittest.TestCase):
             content_type='application/json',
         )
 
-        #holding mock response
+        # holding mock response
         holdurl = self.api.baseurl + r'bibs/\d+/holdings/\d+$'
         hold_re = re.compile(holdurl)
         responses.add_callback(
@@ -279,7 +275,6 @@ class TestAlmaPUTRequests(unittest.TestCase):
             callback=echo_body,
             content_type='application/json',
         )
-
 
     @responses.activate
     def test_alma_put_bib(self):
@@ -296,8 +291,8 @@ class TestAlmaPUTRequests(unittest.TestCase):
         with open('test/hold2.dat', 'r') as dat:
             original_holding = dat.read()
             returned_holding = self.api.put_holding(9922405930001552,
-            22115858660001551,
-            original_holding)
+                                                    22115858660001551,
+                                                    original_holding)
             self.assertEqual(len(responses.calls), 1)
             self.assertEqual(returned_holding, json.loads(original_holding))
 

@@ -28,9 +28,12 @@ RESOURCES = {
     'items': 'bibs/{mms_id}/holdings/{holding_id}/items',
     'item': 'bibs/{mms_id}/holdings/{holding_id}/items/{item_pid}',
     'bib_requests': 'bibs/{mms_id}/requests',
-    'item_requests': 'bibs/{mms_id}/holdings/{holding_id}/items/{item_pid}/requests',
+    'item_requests':
+        'bibs/{mms_id}/holdings/{holding_id}/items/{item_pid}/requests',
     'bib_booking_availability': 'bibs/{mms_id}/booking-availability',
-    'item_booking_availability': 'bibs/{mms_id}/holdings/{holding_id}/items/{item_pid}/booking-availability'
+    'item_booking_availability':
+        'bibs/{mms_id}/holdings/{holding_id}/items/' +
+        '{item_pid}/booking-availability'
 }
 
 
@@ -89,39 +92,36 @@ class Alma(object):
     '''
 
     def get_bib(self, mms_id, accept='json'):
-        response = self.request(
-            'GET', 'bib', {
-                'mms_id': mms_id}, accept=accept)
+        response = self.request('GET', 'bib', {'mms_id': mms_id},
+                                accept=accept)
         return self.extract_content(response)
 
     def put_bib(self, mms_id, data, content_type='json', accept='json'):
-        response = self.request(
-            'PUT', 'bib', {
-                'mms_id': mms_id}, data=data, accept=accept)
+        response = self.request('PUT', 'bib', {'mms_id': mms_id},
+                                data=data, accept=accept)
         return self.extract_content(response)
 
     def get_holdings(self, mms_id, accept='json'):
         pass
 
     def get_holding(self, mms_id, holding_id, accept='json'):
-        response = self.request(
-            'GET', 'holding', {
-                'mms_id': mms_id, 'holding_id': holding_id}, accept=accept)
+        response = self.request('GET', 'holding',
+                                {'mms_id': mms_id, 'holding_id': holding_id},
+                                accept=accept)
         return self.extract_content(response)
 
     def put_holding(self, mms_id, holding_id, data, content_type='json',
                     accept='json'):
-        response = self.request(
-            'PUT', 'holding', {
-                'mms_id': mms_id, 'holding_id': holding_id}, data=data, accept=accept)
+        response = self.request('PUT', 'holding',
+                                {'mms_id': mms_id, 'holding_id': holding_id},
+                                data=data, accept=accept)
         return self.extract_content(response)
 
     def get_items(self, mms_id, holding_id, accept='json'):
         pass
 
     def get_item(self, mms_id, holding_id, item_pid, accept='json'):
-        response = self.request('GET',
-                                'item',
+        response = self.request('GET', 'item',
                                 {'mms_id': mms_id,
                                  'holding_id': holding_id,
                                  'item_pid': item_pid},
@@ -136,14 +136,12 @@ class Alma(object):
         pass
 
     def get_bib_requests(self, mms_id, accept='json'):
-        response = self.request(
-            'GET', 'bib_requests', {
-                'mms_id': mms_id}, accept=accept)
+        response = self.request('GET', 'bib_requests', {'mms_id': mms_id},
+                                accept=accept)
         return self.extract_content(response)
 
     def get_item_requests(self, mms_id, holding_id, item_pid, accept='json'):
-        response = self.request('GET',
-                                'item_requests',
+        response = self.request('GET', 'item_requests',
                                 {'mms_id': mms_id,
                                  'holding_id': holding_id,
                                  'item_pid': item_pid},
@@ -169,15 +167,13 @@ class Alma(object):
         pass
 
     def get_bib_booking_availability(self, mms_id, accept='json'):
-        response = self.request(
-            'GET', 'bib_booking_availability', {
-                'mms_id': mms_id}, accept=accept)
+        response = self.request('GET', 'bib_booking_availability',
+                                {'mms_id': mms_id}, accept=accept)
         return self.extract_content(response)
 
     def get_item_booking_availability(
             self, mms_id, holding_id, item_pid, accept='json'):
-        response = self.request('GET',
-                                'item_booking_availability',
+        response = self.request('GET', 'item_booking_availability',
                                 {'mms_id': mms_id,
                                  'holding_id': holding_id,
                                  'item_pid': item_pid},
