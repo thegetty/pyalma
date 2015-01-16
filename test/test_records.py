@@ -1,12 +1,9 @@
-import os
-from importlib import reload
 import json
 import unittest
 
 import pymarc
-import responses
 
-from pyalma import alma, records
+from pyalma import records
 
 
 class TestBibRecord(unittest.TestCase):
@@ -66,15 +63,17 @@ class TestItemRecord(unittest.TestCase):
             self.itemdata = json.loads(f.read())
 
     def assertItemEqual(self, item):
-        self.assertEqual(item.data['link'], 'https://api-na.hosted.exlibrisgroup.com/almaws/v1/bibs/9922405930001551/holdings/22115858660001551/items/23115858650001551')
+        self.assertEqual(item.data['link'],
+                         'https://api-na.hosted.exlibrisgroup.com/almaws/v1/' +
+                         'bibs/9922405930001551/holdings/22115858660001551/' +
+                         'items/23115858650001551')
         self.assertEqual(item.data['item_data']['pid'], '23115858650001551')
-        self.assertEqual(item.data['holding_data']['holding_id'], '22115858660001551')
+        self.assertEqual(item.data['holding_data']['holding_id'],
+                         '22115858660001551')
         self.assertEqual(item.data['bib_data']['mms_id'], 9922405930001552)
-        self.assertEqual(item.data['bib_data']['network_number'], [
-            "(CMalG)333281-gettydb-Voyager",
-            "(OCoLC)28384525",
-            "333281"
-        ])
+        self.assertEqual(item.data['bib_data']['network_number'],
+                         ["(CMalG)333281-gettydb-Voyager",
+                          "(OCoLC)28384525", "333281"])
 
     def test_item_load(self):
         item = records.Item()
@@ -124,4 +123,3 @@ class TestAvailabilityRecord(unittest.TestCase):
     def test_availability_init(self):
         availability = records.Availability(self.availabilitydata)
         self.assertAvailabilityEqual(availability)
-

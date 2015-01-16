@@ -81,7 +81,7 @@ class Holding(Record):
 
 
 class Item(Record):
-    
+
     def __init__(self, data={}):
         super().__init__('item', data)
 
@@ -96,7 +96,7 @@ class Item(Record):
     @property
     def title(self):
         return self.data.get('bib_data').get('title')
-    
+
     @property
     def author(self):
         return self.data.get('bib_data').get('author')
@@ -104,23 +104,23 @@ class Item(Record):
     @property
     def issn(self):
         return self.data.get('bib_data').get('issn')
-    
+
     @property
     def isbn(self):
         return self.data.get('bib_data').get('isbn')
-    
+
     @property
     def complete_edition(self):
         return self.data.get('bib_data').get('complete_edition')
-    
+
     @property
     def network_number(self):
         return self.data.get('bib_data').get('network_number')
-    
+
     @property
     def place_of_publication(self):
         return self.data.get('bib_data').get('place_of_publication')
-    
+
     @property
     def publisher_const(self):
         return self.data.get('bib_data').get('publisher_const')
@@ -128,130 +128,130 @@ class Item(Record):
     @property
     def bib_link(self):
         return self.data.get('bib_data').get('link')
-    
+
     @property
     def holding_id(self):
         return self.data.get('holding_data').get('holding_id')
-    
+
     @property
     def call_number(self):
         return self.data.get('holding_data').get('call_number')
-    
+
     @property
     def temp_library(self):
         return self.data.get('holding_data').get('temp_library')
-    
+
     @property
     def temp_location(self):
         return self.data.get('holding_data').get('temp_location')
-    
+
     @property
     def temp_call_number(self):
         return self.data.get('holding_data').get('temp_call_number')
-    
+
     @property
     def accession_number(self):
         return self.data.get('holding_data').get('accession_number')
-    
+
     @property
     def holding_link(self):
         return self.data.get('holding_data').get('link')
-    
+
     @property
     def pid(self):
         return self.data.get('item_data').get('pid')
-    
+
     @property
     def barcode(self):
         return self.data.get('item_data').get('barcode')
-    
+
     @property
     def description(self):
         return self.data.get('item_data').get('description')
-    
+
     @property
     def physical_material_type(self):
         return self.data.get('item_data').get('physical_material_type')
-    
+
     @property
     def process_type(self):
         return self.data.get('item_data').get('process_type')
-    
+
     @property
     def library(self):
         return self.data.get('item_data').get('library')
-    
+
     @property
     def location(self):
         return self.data.get('item_data').get('location')
-    
+
     @property
     def po_line(self):
         return self.data.get('item_data').get('po_line')
-    
+
     @property
     def arrival_date(self):
         return self.data.get('item_data').get('arrival_date')
-    
+
     @property
     def requested(self):
         return self.data.get('item_data').get('requested')
-    
+
     @property
     def enumeration_a(self):
         return self.data.get('item_data').get('enumeration_a')
-    
+
     @property
     def enumeration_b(self):
         return self.data.get('item_data').get('enumeration_b')
-    
+
     @property
     def enumeration_c(self):
         return self.data.get('item_data').get('enumeration_c')
-    
+
     @property
     def enumeration_d(self):
         return self.data.get('item_data').get('enumeration_d')
-    
+
     @property
     def enumeration_e(self):
         return self.data.get('item_data').get('enumeration_e')
-    
+
     @property
     def enumeration_f(self):
         return self.data.get('item_data').get('enumeration_f')
-    
+
     @property
     def enumeration_g(self):
         return self.data.get('item_data').get('enumeration_g')
-    
+
     @property
     def enumeration_h(self):
         return self.data.get('item_data').get('enumeration_h')
-    
+
     @property
     def chronology_i(self):
         return self.data.get('item_data').get('chronology_i')
-    
+
     @property
     def chronology_j(self):
         return self.data.get('item_data').get('chronology_j')
-    
+
     @property
     def chronology_k(self):
         return self.data.get('item_data').get('chronology_k')
-    
+
     @property
     def chronology_l(self):
         return self.data.get('item_data').get('chronology_l')
-    
+
     @property
     def chronology_m(self):
         return self.data.get('item_data').get('chronology_m')
 
 
 class Request(Record):
-    
+
     def __init__(self, data={}):
         super().__init__('request', data)
 
@@ -350,6 +350,7 @@ class Request(Record):
     @property
     def adjusted_booking_end_date(self):
         return self.data.get('adjusted_booking_end_date')
+
 
 class Availability(Record):
 

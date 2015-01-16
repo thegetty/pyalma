@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?><bib><mms_id>9922405930001551</mms_id><holdings link="https://api-na.hosted.exlibrisgroup.com/almaws/v1/bibs/9922405930001551/holdings"/><created_by>import</created_by><created_date>2013-07-14Z</created_date><record>
+    <leader>01229cam a2200397 a 4504</leader>
+    <controlfield tag="001">333281</controlfield>
+    <controlfield tag="005">20130704111532.0</controlfield>
+    <controlfield tag="008">940217s1992    ctua     b    001 0 eng d</controlfield>
+    <datafield ind1=" " ind2=" " tag="035">
+      <subfield code="9">94-B3418</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="035">
+      <subfield code="a">333281</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="035">
+      <subfield code="a">(OCoLC)28384525</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="035">
+      <subfield code="a">(CMalG)333281-gettydb-Voyager</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="040">
+      <subfield code="a">CPaHP</subfield>
+      <subfield code="c">CPaHP</subfield>
+      <subfield code="d">CMalG</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="090">
+      <subfield code="a">P93.5</subfield>
+      <subfield code="b">.T84 1992</subfield>
+    </datafield>
+    <datafield ind1="1" ind2=" " tag="100">
+      <subfield code="a">Tuft, Edward R.,</subfield>
+      <subfield code="d">1942-</subfield>
+    </datafield>
+    <datafield ind1="1" ind2="0" tag="245">
+      <subfield code="a">Envisioning information /</subfield>
+      <subfield code="c">Edward R. Tuft.</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="250">
+      <subfield code="a">3rd printing, with revisions.</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="260">
+      <subfield code="a">Cheshire, Conn. :</subfield>
+      <subfield code="b">Graphics Press,</subfield>
+      <subfield code="c">1992.</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="300">
+      <subfield code="a">126 p. :</subfield>
+      <subfield code="b">ill. (some col.) ;</subfield>
+      <subfield code="c">28 cm.</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="504">
+      <subfield code="a">Includes bibliographical references and index.</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="0" tag="650">
+      <subfield code="a">Visual communication.</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="1" tag="905">
+      <subfield code="a">1</subfield>
+      <subfield code="b">02/17/94 SMT</subfield>
+      <subfield code="c">MAI</subfield>
+      <subfield code="e">DZ</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="1" tag="906">
+      <subfield code="a">BKH</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="1" tag="907">
+      <subfield code="b">LCON02</subfield>
+      <subfield code="d">48.00</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="1" tag="908">
+      <subfield code="a">pr/48.00,inv#016687,invd940126,inrd940217</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="1" tag="909">
+      <subfield code="a">JRA</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="909">
+      <subfield code="g">cica</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="921">
+      <subfield code="a">b1336991x</subfield>
+      <subfield code="b">12-20-00</subfield>
+      <subfield code="c">04-28-95</subfield>
+      <subfield code="d">cc</subfield>
+      <subfield code="e">01-01-95</subfield>
+      <subfield code="f">a</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="935">
+      <subfield code="a">c</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="950">
+      <subfield code="l">CONS</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="955">
+      <subfield code="c">1</subfield>
+      <subfield code="q">94-B3418-1</subfield>
+      <subfield code="r">33125006577916</subfield>
+      <subfield code="i">07/28/94 C</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="1" tag="955">
+      <subfield code="r">33125006577916</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="1" tag="960">
+      <subfield code="b">0</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="1" tag="981">
+      <subfield code="b">1</subfield>
+      <subfield code="c">07/27/94 CAT</subfield>
+      <subfield code="d">CONS</subfield>
+      <subfield code="e">CONS</subfield>
+      <subfield code="i">02/17/94 REC</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="995">
+      <subfield code="a">94-B03418</subfield>
+    </datafield>
+    <datafield ind1="0" ind2=" " tag="996">
+      <subfield code="a">Conservation collection (Getty Research Institute)</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="998">
+      <subfield code="s">9116</subfield>
+      <subfield code="n">CMalG</subfield>
+      <subfield code="c">MSW</subfield>
+      <subfield code="b">MSW</subfield>
+      <subfield code="l">CJPA</subfield>
+    </datafield>
+  </record></bib>
