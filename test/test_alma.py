@@ -271,6 +271,16 @@ class TestAlmaPUTRequests(unittest.TestCase):
             content_type='application/json',
         )
 
+        #holding mock response
+        holdurl = self.api.baseurl + r'bibs/\d+/holdings/\d+$'
+        hold_re = re.compile(holdurl)
+        responses.add_callback(
+            responses.PUT, hold_re,
+            callback=echo_body,
+            content_type='application/json',
+        )
+
+
     @responses.activate
     def test_alma_put_bib(self):
         self.buildResponses()
@@ -282,7 +292,14 @@ class TestAlmaPUTRequests(unittest.TestCase):
 
     @responses.activate
     def test_alma_put_holding(self):
-        pass
+        self.buildResponses()
+        with open('test/hold2.dat', 'r') as dat:
+            original_holding = dat.read()
+            returned_holding = self.api.put_holding(9922405930001552,
+            22115858660001551,
+            original_holding)
+            self.assertEqual(len(responses.calls), 1)
+            self.assertEqual(returned_holding, json.loads(original_holding))
 
 if __name__ == '__main__':
     unittest.main()
