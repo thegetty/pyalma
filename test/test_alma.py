@@ -276,6 +276,24 @@ class TestAlmaPUTRequests(unittest.TestCase):
             content_type='application/json',
         )
 
+        # bib_request mock response
+        bib_requesturl = self.api.baseurl + r'bibs/\d+/requests/\d+$'
+        bib_request_re = re.compile(bib_requesturl)
+        responses.add_callback(
+            responses.PUT, bib_request_re,
+            callback=echo_body,
+            content_type='application/json'
+        )
+
+        # item_request mock response
+        item_requesturl = self.api.baseurl + r'bibs/\d+/holdings/\d+/items/\d+/requests/\d+$'
+        item_request_re = re.compile(item_requesturl)
+        responses.add_callback(
+            responses.PUT, item_request_re,
+            callback=echo_body,
+            content_type='application/json',
+        )
+
     @responses.activate
     def test_alma_put_bib(self):
         self.buildResponses()
@@ -295,6 +313,145 @@ class TestAlmaPUTRequests(unittest.TestCase):
                                                     original_holding)
             self.assertEqual(len(responses.calls), 1)
             self.assertEqual(returned_holding, json.loads(original_holding))
+
+    @responses.activate
+    def test_alma_put_bib_request(self):
+        self.buildResponses()
+        with open('test/request.dat', 'r') as dat:
+            original_bib_request = dat.read()
+            returned_bib_request = self.api.put_bib_request(9922405930001552,
+                                                            83013520000121,
+                                                            original_bib_request)
+            self.assertEqual(len(responses.calls), 1)
+            self.assertEqual(returned_bib_request, json.loads(original_bib_request))
+
+    @responses.activate
+    def test_alma_put_item_request(self):
+        self.buildResponses()
+        with open('test/request.dat', 'r') as dat:
+            original_item_request = dat.read()
+            returned_item_request = self.api.put_item_request(9922405930001552,
+                                                              22115858660001551,
+                                                              23115858650001551,
+                                                              83013520000121,
+                                                              original_item_request)
+            self.assertEqual(len(responses.calls), 1)
+            self.assertEqual(returned_item_request, json.loads(original_item_request))
+
+
+class TestAlmaPOSTRequests(unittest.TestCase):
+    maxDiff = None
+
+    def setUp(self):
+        self.api = alma.Alma(apikey='unreal', region='EU')
+
+    def buildResponses(self):
+
+        def echo_body(request):
+            return (200, {}, request.body)
+
+        # bib_request mock responses
+        bib_requesturl = self.api.baseurl + r'bibs/\d+/requests$'
+        bib_request_re = re.compile(bib_requesturl)
+        responses.add_callback(
+            responses.POST, bib_request_re,
+            callback=echo_body,
+            content_type='application/json',
+        )
+
+        with open('test/request.dat', 'r') as r:
+            responses.add(responses.POST, bib_request_re,
+                          status=200,
+                          content_type='application/json',
+                          body=r.read())
+
+        #item_request mock responses
+        item_requesturl = self.api.baseurl + r'bibs/\d+/holdings/\d+/items/\d+/requests$'
+        item_request_re = re.compile(item_requesturl)
+        responses.add_callback(
+            responses.POST, item_request_re,
+            callback=echo_body,
+            content_type='application/json',
+        )
+
+        with open('test/request.dat', 'r') as r:
+            responses.add(responses.POST, item_request_re,
+                          status=200,
+                          content_type='application/json',
+                          body=r.read())
+                
+    @responses.activate
+    def test_alma_post_bib_request(self):
+        self.buildResponses()
+        with open ('test/request2.dat', 'r') as dat:
+            original_bib_request = dat.read()
+            returned_bib_request = self.api.post_bib_request(9922405930001552,
+                                                            original_bib_request)
+            self.assertEqual(len(responses.calls), 1)
+            self.assertEqual(returned_bib_request, json.loads(original_bib_request))
+        
+        with open('test/request.dat', 'r') as dat:
+            bib_request_return = dat.read()
+            bib_request_response = self.api.post_bib_request(9922405930001552,
+                                                            bib_request_return)
+            self.assertEqual(bib_request_response, json.loads(bib_request_return))
+
+    @responses.activate
+    def test_alma_post_item_request(self):
+        self.buildResponses()
+        with open ('test/request2.dat', 'r') as dat:
+            original_item_request = dat.read()
+            returned_item_request = self.api.post_item_request(9922405930001552,
+                                                              22115858660001551,
+                                                              23115858650001551,
+                                                              original_item_request)
+            self.assertEqual(len(responses.calls), 1)
+            self.assertEqual(returned_item_request, json.loads(original_item_request))
+
+        with open('test/request.dat', 'r') as dat:
+            item_request_return = dat.read()
+            item_request_response = self.api.post_item_request(9922405930001552,
+                                                              22115858660001551,
+                                                              23115858650001551,
+                                                              item_request_return)
+            self.assertEqual(item_request_response, json.loads(item_request_return))
+
+
+class TestAlmaDELETERequests(unittest.TestCase):
+    maxDiff = None
+
+    def setUp(self):
+        self.api = alma.Alma(apikey='unreal', region='EU')
+
+    def buildResponses(self):
+
+        # bib_request mock response
+        bib_requesturl = self.api.baseurl + r'bibs/\d+/requests/\d+$'
+        bib_request_re = re.compile(bib_requesturl)
+        responses.add(responses.DELETE, bib_request_re, body='', status=204,)
+
+        #item_request mock response
+        item_requesturl = self.api.baseurl + r'bibs/\d+/holdings/\d+/items/\d+/requests/\d+$'
+        item_request_re = re.compile(item_requesturl)
+        responses.add(responses.DELETE, item_request_re, body='', status=204,)
+
+    @responses.activate
+    def test_alma_delete_bib_request(self):
+        self.buildResponses()
+        expected = ''
+        bib_request_response = self.api.del_bib_request(9922405930001552,
+                                                        83013520000121,)
+        self.assertEqual(expected, bib_request_response)
+
+    @responses.activate
+    def test_alma_delete_item_request(self):
+        self.buildResponses()
+        expected = ''
+        item_request_response = self.api.del_item_request(9922405930001552,
+                                                          22115858660001551,
+                                                          23115858650001551,
+                                                          83013520000121,)
+        self.assertEqual(expected, item_request_response)
 
 if __name__ == '__main__':
     unittest.main()

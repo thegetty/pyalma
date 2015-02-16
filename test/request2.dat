@@ -1,0 +1,7 @@
+{
+  "request_type": "HOLD",
+  "pickup_location": "Burns",
+  "pickup_location_type": "LIBRARY",
+  "pickup_location_library": "BURNS",
+  "comment": "my comment"
+}
