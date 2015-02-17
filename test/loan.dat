@@ -1,0 +1,8 @@
+{
+  "circ_desk": {
+    "value": "DEFAULT_CIRC_DESK"
+  },
+  "library": {
+    "value": "MAIN"
+  }
+}
