@@ -37,7 +37,8 @@ RESOURCES = {
     'bib_booking_availability': 'bibs/{mms_id}/booking-availability',
     'item_booking_availability':
         'bibs/{mms_id}/holdings/{holding_id}/items/' +
-        '{item_pid}/booking-availability'
+        '{item_pid}/booking-availability',
+    'loan': 'bibs/{mms_id}/holdings/{holding_id}/items/{item_pid}/loans'
 }
 
 
@@ -137,7 +138,12 @@ class Alma(object):
 
     def post_loan(self, mms_id, holding_id, item_pid, data,
                   content_type='json', accept='json'):
-        pass
+        response = self.request('POST', 'loan', 
+                                {'mms_id': mms_id,
+                                 'holding_id': holding_id,
+                                 'item_pid': item_pid},
+                                data=data, accept=accept)
+        return self.extract_content(response)
 
     def get_bib_requests(self, mms_id, accept='json'):
         response = self.request('GET', 'bib_requests', {'mms_id': mms_id},

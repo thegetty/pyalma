@@ -128,6 +128,7 @@ class TestAlmaGETRequests(unittest.TestCase):
                           content_type='application/json',
                           body=f.read())
 
+
     def buildXMLResponses(self):
         # bib mock response
         biburl = self.api.baseurl + r'bibs/\d+'
@@ -379,6 +380,21 @@ class TestAlmaPOSTRequests(unittest.TestCase):
                           status=200,
                           content_type='application/json',
                           body=r.read())
+
+        #loan mock responses
+        loanurl = self.api.baseurl + r'bibs/\d+/holdings/\d+/items/\d+/loans'
+        loan_re = re.compile(loanurl)
+        responses.add_callback(
+            responses.POST, loan_re,
+            callback=echo_body,
+            content_type='application/json',
+        )
+        
+        with open('test/item_loan.dat', 'r') as r:
+            responses.add(responses.POST, loan_re,
+                          status=200,
+                          content_type='application/json',
+                          body=r.read())
                 
     @responses.activate
     def test_alma_post_bib_request(self):
@@ -415,6 +431,26 @@ class TestAlmaPOSTRequests(unittest.TestCase):
                                                               23115858650001551,
                                                               item_request_return)
             self.assertEqual(item_request_response, json.loads(item_request_return))
+
+    @responses.activate
+    def test_alma_post_loan(self):
+        self.buildResponses()
+        with open ('test/loan.dat', 'r') as dat:
+            original_loan = dat.read()
+            returned_loan = self.api.post_loan(9922405930001552,
+                                              22115858660001551,
+                                              23115858650001551,
+                                              original_loan)
+            self.assertEqual(len(responses.calls), 1)
+            self.assertEqual(returned_loan, json.loads(original_loan))
+
+        with open('test/item_loan.dat', 'r') as dat:
+            loan_return = dat.read()
+            loan_response = self.api.post_loan(9922405930001552,
+                                              22115858660001551,
+                                              23115858650001551,
+                                              loan_return)
+            self.assertEqual(loan_response, json.loads(loan_return))
 
 
 class TestAlmaDELETERequests(unittest.TestCase):
