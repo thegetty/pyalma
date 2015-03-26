@@ -107,7 +107,9 @@ class Alma(object):
         return self.extract_content(response)
 
     def get_holdings(self, mms_id, accept='json'):
-        pass
+        response = self.request('GET', 'holdings', {'mms_id': mms_id},
+                                accept=accept)
+        return self.extract_content(response)
 
     def get_holding(self, mms_id, holding_id, accept='json'):
         response = self.request('GET', 'holding',
@@ -123,7 +125,11 @@ class Alma(object):
         return self.extract_content(response)
 
     def get_items(self, mms_id, holding_id, accept='json'):
-        pass
+        response = self.request('GET', 'items', 
+                                {'mms_id': mms_id,
+                                 'holding_id': holding_id},
+                                accept=accept)
+        return self.extract_content(response)
 
     def get_item(self, mms_id, holding_id, item_pid, accept='json'):
         response = self.request('GET', 'item',
@@ -241,14 +247,16 @@ class Alma(object):
         return records.Bib(data)
 
     def holdings(self, mms_id):
-        pass
+        data = self.get_holdings(mms_id)
+        return records.Holdings(data)
 
     def holding(self, mms_id, holding_id):
         data = self.get_holding(mms_id, holding_id)
         return records.Holding(data)
 
     def items(self, mms_id, holding_id=None):
-        pass
+        data = self.get_items(mms_id, holding_id)
+        return records.Items(data)
 
     def item(self, mms_id, holding_id, item_pid):
         data = self.get_item(mms_id, holding_id, item_pid)

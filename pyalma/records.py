@@ -54,6 +54,20 @@ class Bib(Record):
         return self.data.get('holdings').get('link')
 
 
+class Holdings(Record):
+
+    def __init__(self, data={}):
+        super().__init__('holdings', data)
+
+    @property
+    def holding_id(self):
+        return self.data.get('holding').get('holding_id')
+
+    @property
+    def total_record_count(self):
+        return self.data.get('total_record_count')
+
+
 class Holding(Record):
 
     def __init__(self, data={}):
@@ -78,6 +92,20 @@ class Holding(Record):
     @property
     def last_modified_date(self):
         return self.data.get('last_modified_date')
+
+
+class Items(Record):
+
+    def __init__(self, data={}):
+        super().__init__('items', data)
+
+    @property
+    def item_id(self):
+        return self.data.get('item').get('item_data').get('pid')
+
+    @property
+    def total_record_count(self):
+        return self.data.get('total_record_count')
 
 
 class Item(Record):
