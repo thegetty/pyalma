@@ -72,6 +72,15 @@ class TestAlmaGETRequests(unittest.TestCase):
                           body=b.read())
 
         # holdings mock response
+        holdsurl = self.api.baseurl + r'bibs/\d+/holdings$'
+        holds_re = re.compile(holdsurl)
+        with open('test/holds.dat', 'r') as hs:
+            responses.add(responses.GET, holds_re,
+                          status=200,
+                          content_type='application/json',
+                          body=hs.read())
+
+        # holding mock response
         holdurl = self.api.baseurl + r'bibs/\d+/holdings/\d+$'
         hold_re = re.compile(holdurl)
         with open('test/hold.dat', 'r') as h:
@@ -79,6 +88,15 @@ class TestAlmaGETRequests(unittest.TestCase):
                           status=200,
                           content_type='application/json',
                           body=h.read())
+
+        #items mock response
+        itemsurl = self.api.baseurl + r'bibs/\d+/holdings/\d+/items$'
+        items_re = re.compile(itemsurl)
+        with open('test/items.dat', 'r') as its:
+            responses.add(responses.GET, items_re,
+                          status=200,
+                          content_type='application/json',
+                          body=its.read())
 
         # item mock response
         itemurl = self.api.baseurl + r'bibs/\d+/holdings/\d+/items/\d+$'
@@ -176,6 +194,19 @@ class TestAlmaGETRequests(unittest.TestCase):
         self.assertIsInstance(bib, records.Bib)
 
     @responses.activate
+    def test_alma_get_holdings(self):
+        self.buildResponses()
+        holdings_data = self.api.get_holdings(99100383900121)
+        with open('test/holds.dat', 'r') as dat:
+            self.assertEqual(holdings_data, json.loads(dat.read()))
+
+    @responses.activate
+    def test_alma_holdings(self):
+        self.buildResponses()
+        holdings = self.api.holdings(99100383900121)
+        self.assertIsInstance(holdings, records.Holdings)
+
+    @responses.activate
     def test_alma_get_holding(self):
         self.buildResponses()
         holding_data = self.api.get_holding(
@@ -189,6 +220,19 @@ class TestAlmaGETRequests(unittest.TestCase):
         self.buildResponses()
         holding = self.api.holding(9922405930001552, 22115858660001551)
         self.assertIsInstance(holding, records.Holding)
+
+    @responses.activate
+    def test_alma_get_items(self):
+        self.buildResponses()
+        items_data = self.api.get_items(99100383900121, 2221159990000121)
+        with open('test/items.dat', 'r') as dat:
+            self.assertEqual(items_data, json.loads(dat.read()))
+
+    @responses.activate
+    def test_alma_items(self):
+        self.buildResponses()
+        items = self.api.items(99100383900121, 2221159990000121)
+        self.assertIsInstance(items, records.Items)
 
     @responses.activate
     def test_alma_get_item(self):

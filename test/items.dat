@@ -1,0 +1,105 @@
+{
+  "item": [
+    {
+      "link": "/almaws/v1/bibs/99100383900121/holdings/2221159990000121/items/2321159970000121",
+      "bib_data": {
+        "title": "Data base",
+        "issn": "0095-0033",
+        "link": "/almaws/v1/bibs/99100383900121",
+        "mms_id": 99100383900121,
+        "place_of_publication": "New York :",
+        "publisher_const": "Association for Computing Machinery",
+        "network_number": [
+          "(CONSER)  2011250895",
+          "(CKB)954926959913",
+          "(OCoLC)604911177"
+        ]
+      },
+      "holding_data": {
+        "link": "/almaws/v1/bibs/99100383900121/holdings/2221159990000121",
+        "holding_id": "2221159990000121",
+        "temp_library": {
+          "value": null,
+          "desc": null
+        },
+        "temp_location": {
+          "value": null,
+          "desc": null
+        }
+      },
+      "item_data": {
+        "pid": "2321159970000121",
+        "description": null,
+        "library": {
+          "value": "65144020000121",
+          "desc": "BURNS"
+        },
+        "location": {
+          "value": "UNASSIGNED",
+          "desc": "UNASSIGNED location"
+        },
+        "requested": false,
+        "physical_material_type": {
+          "value": "ISSUE",
+          "desc": "journal"
+        },
+        "process_type": {
+          "value": "ACQ",
+          "desc": "Acquisition"
+        },
+        "po_line": "POL-67552"
+      }
+    },
+    {
+      "link": "/almaws/v1/bibs/99100383900121/holdings/2221159990000121/items/2321159980000121",
+      "bib_data": {
+        "title": "Data base",
+        "issn": "0095-0033",
+        "link": "/almaws/v1/bibs/99100383900121",
+        "mms_id": 99100383900121,
+        "place_of_publication": "New York :",
+        "publisher_const": "Association for Computing Machinery",
+        "network_number": [
+          "(CONSER)  2011250895",
+          "(CKB)954926959913",
+          "(OCoLC)604911177"
+        ]
+      },
+      "holding_data": {
+        "link": "/almaws/v1/bibs/99100383900121/holdings/2221159990000121",
+        "holding_id": "2221159990000121",
+        "temp_library": {
+          "value": null,
+          "desc": null
+        },
+        "temp_location": {
+          "value": null,
+          "desc": null
+        }
+      },
+      "item_data": {
+        "pid": "2321159980000121",
+        "description": null,
+        "library": {
+          "value": "65144020000121",
+          "desc": "BURNS"
+        },
+        "location": {
+          "value": "UNASSIGNED",
+          "desc": "UNASSIGNED location"
+        },
+        "requested": false,
+        "physical_material_type": {
+          "value": "ISSUE",
+          "desc": "journal"
+        },
+        "process_type": {
+          "value": "ACQ",
+          "desc": "Acquisition"
+        },
+        "po_line": "POL-67551"
+      }
+    }
+  ],
+  "total_record_count": 2
+}

@@ -31,6 +31,27 @@ class TestBibRecord(unittest.TestCase):
         self.assertEqual(bib.marc.author(), 'Tufte, Edward R., 1942-')
 
 
+class TestHoldingsRecord(unittest.TestCase):
+
+    def setUp(self):
+        with open('test/holds.dat', 'r') as f:
+            self.holdingsdata = json.loads(f.read())
+
+    def assertHoldingsEqual(self, holdings):
+        self.assertEqual(holdings.data['holding'][0]['holding_id'], '2221159990000121')
+        self.assertEqual(holdings.data['holding'][1]['holding_id'], '2221410000000121')
+        self.assertEqual(holdings.data['total_record_count'], 2)
+
+    def test_holdings_load(self):
+        holdings = records.Holdings()
+        holdings.load(self.holdingsdata)
+        self.assertHoldingsEqual(holdings)
+
+    def test_holdings_init(self):
+        holdings = records.Holdings(self.holdingsdata)
+        self.assertHoldingsEqual(holdings)
+
+
 class TestHoldingRecord(unittest.TestCase):
 
     def setUp(self):
@@ -54,6 +75,26 @@ class TestHoldingRecord(unittest.TestCase):
         holding = records.Holding(self.holdingdata)
         self.assertIsInstance(holding.marc, pymarc.record.Record)
         self.assertEqual(holding.marc['014']['a'], '94-B3418')
+
+
+class TestItemsRecord(unittest.TestCase):
+    def setUp(self):
+        with open('test/items.dat', 'r') as f:
+            self.itemsdata = json.loads(f.read())
+
+    def assertItemsEqual(self, items):
+        self.assertEqual(items.data['item'][0]['item_data']['pid'], '2321159970000121')
+        self.assertEqual(items.data['item'][1]['item_data']['pid'], '2321159980000121')
+        self.assertEqual(items.data['total_record_count'], 2)
+
+    def test_items_load(self):
+        items = records.Items()
+        items.load(self.itemsdata)
+        self.assertItemsEqual(items)
+
+    def test_items_init(self):
+        items = records.Items(self.itemsdata)
+        self.assertItemsEqual(items)
 
 
 class TestItemRecord(unittest.TestCase):
