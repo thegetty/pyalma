@@ -1,0 +1,103 @@
+{
+  "link": "/almaws/v1/bibs/99110223950001021/holdings/22344156400001021/items/23344156380001021",
+  "bib_data": {
+    "title": "Visualizing data /",
+    "author": "Fry, Ben.",
+    "issn": null,
+    "isbn": "9780596514556 (pbk.)",
+    "link": "/almaws/v1/bibs/99110223950001021",
+    "mms_id": 99110223950001020,
+    "place_of_publication": "Sebastopol, CA :",
+    "publisher_const": "O'Reilly Media Inc",
+    "network_number": [
+      "(OCoLC)ocn190865378",
+      "(Aleph)002401490BCL01"
+    ]
+  },
+  "holding_data": {
+    "link": "/almaws/v1/bibs/99110223950001021/holdings/22344156400001021",
+    "holding_id": "22344156400001021",
+    "call_number": "T385 .F79 2008",
+    "accession_number": "",
+    "copy_id": "",
+    "in_temp_location": false,
+    "temp_library": {
+      "value": null,
+      "desc": null
+    },
+    "temp_location": {
+      "value": null,
+      "desc": null
+    },
+    "temp_call_number_type": {
+      "value": "",
+      "desc": null
+    },
+    "temp_call_number": "",
+    "temp_policy": {
+      "value": "",
+      "desc": null
+    }
+  },
+  "item_data": {
+    "pid": "23344156380001021",
+    "barcode": "39031031697261",
+    "policy": {
+      "value": "01",
+      "desc": "01"
+    },
+    "provenance": {
+      "value": "",
+      "desc": null
+    },
+    "description": "",
+    "library": {
+      "value": "ONL",
+      "desc": "O'Neill"
+    },
+    "location": {
+      "value": "STACK",
+      "desc": "Stacks (STACK)"
+    },
+    "pages": "",
+    "pieces": "",
+    "requested": false,
+    "edition": null,
+    "imprint": null,
+    "language": null,
+    "creation_date": "2012-06-10Z",
+    "modification_date": "2012-06-10Z",
+    "base_status": {
+      "value": "1",
+      "desc": "Item in place"
+    },
+    "physical_material_type": {
+      "value": "BOOK",
+      "desc": "Book"
+    },
+    "po_line": "08-000030003",
+    "is_magnetic": false,
+    "year_of_issue": "",
+    "enumeration_a": "",
+    "chronology_i": "",
+    "receiving_operator": "",
+    "process_type": {
+      "value": "",
+      "desc": null
+    },
+    "alternative_call_number": "",
+    "alternative_call_number_type": {
+      "value": "",
+      "desc": null
+    },
+    "storage_location_id": "",
+    "public_note": "",
+    "fulfillment_note": "",
+    "internal_note_1": "",
+    "internal_note_2": "",
+    "internal_note_3": "",
+    "statistics_note_1": "",
+    "statistics_note_2": "",
+    "statistics_note_3": ""
+  }
+}

@@ -38,8 +38,6 @@ class TestHoldingsRecord(unittest.TestCase):
             self.holdingsdata = json.loads(f.read())
 
     def assertHoldingsEqual(self, holdings):
-        self.assertEqual(holdings.data['holding'][0]['holding_id'], '2221159990000121')
-        self.assertEqual(holdings.data['holding'][1]['holding_id'], '2221410000000121')
         self.assertEqual(holdings.data['total_record_count'], 2)
 
     def test_holdings_load(self):
@@ -83,8 +81,6 @@ class TestItemsRecord(unittest.TestCase):
             self.itemsdata = json.loads(f.read())
 
     def assertItemsEqual(self, items):
-        self.assertEqual(items.data['item'][0]['item_data']['pid'], '2321159970000121')
-        self.assertEqual(items.data['item'][1]['item_data']['pid'], '2321159980000121')
         self.assertEqual(items.data['total_record_count'], 2)
 
     def test_items_load(self):

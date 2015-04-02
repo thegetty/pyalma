@@ -321,6 +321,15 @@ class TestAlmaPUTRequests(unittest.TestCase):
             content_type='application/json',
         )
 
+        # item mock response
+        itemurl = self.api.baseurl + r'bibs/\d+/holdings/\d+/items/\d+$'
+        item_re = re.compile(itemurl)
+        responses.add_callback(
+            responses.PUT, item_re,
+            callback=echo_body,
+            content_type='application/json',
+        )
+
         # bib_request mock response
         bib_requesturl = self.api.baseurl + r'bibs/\d+/requests/\d+$'
         bib_request_re = re.compile(bib_requesturl)
@@ -358,6 +367,18 @@ class TestAlmaPUTRequests(unittest.TestCase):
                                                     original_holding)
             self.assertEqual(len(responses.calls), 1)
             self.assertEqual(returned_holding, json.loads(original_holding))
+
+    @responses.activate
+    def test_alma_put_item(self):
+        self.buildResponses()
+        with open('test/item2.dat', 'r') as dat:
+            original_item = dat.read()
+            returned_item = self.api.put_item(99110223950001020,
+                                              22344156400001021,
+                                              23344156380001021,
+                                              original_item)
+            self.assertEqual(len(responses.calls), 1)
+            self.assertEqual(returned_item, json.loads(original_item))
 
     @responses.activate
     def test_alma_put_bib_request(self):
