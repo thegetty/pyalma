@@ -139,6 +139,15 @@ class Alma(object):
                                 accept=accept)
         return self.extract_content(response)
 
+    def put_item(self, mms_id, holding_id, item_pid, data, content_type='json',
+                 accept='json'):
+        response = self.request('PUT', 'item',
+                                {'mms_id': mms_id,
+                                 'holding_id': holding_id,
+                                 'item_pid': item_pid},
+                                data=data, accept=accept)
+        return self.extract_content(response)
+
     def del_item(self, mms_id, holding_id, item_pid):
         pass
 

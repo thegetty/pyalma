@@ -60,10 +60,6 @@ class Holdings(Record):
         super().__init__('holdings', data)
 
     @property
-    def holding_id(self):
-        return self.data.get('holding').get('holding_id')
-
-    @property
     def total_record_count(self):
         return self.data.get('total_record_count')
 
@@ -98,10 +94,6 @@ class Items(Record):
 
     def __init__(self, data={}):
         super().__init__('items', data)
-
-    @property
-    def item_id(self):
-        return self.data.get('item').get('item_data').get('pid')
 
     @property
     def total_record_count(self):
