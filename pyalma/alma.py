@@ -103,7 +103,7 @@ class Alma(object):
 
     def put_bib(self, mms_id, data, content_type='json', accept='json'):
         response = self.request('PUT', 'bib', {'mms_id': mms_id},
-                                data=data, accept=accept)
+                                data=data, content_type=content_type, accept=accept)
         return self.extract_content(response)
 
     def get_holdings(self, mms_id, accept='json'):
@@ -121,7 +121,7 @@ class Alma(object):
                     accept='json'):
         response = self.request('PUT', 'holding',
                                 {'mms_id': mms_id, 'holding_id': holding_id},
-                                data=data, accept=accept)
+                                data=data, content_type=content_type, accept=accept)
         return self.extract_content(response)
 
     def get_items(self, mms_id, holding_id, accept='json'):
@@ -145,7 +145,7 @@ class Alma(object):
                                 {'mms_id': mms_id,
                                  'holding_id': holding_id,
                                  'item_pid': item_pid},
-                                data=data, accept=accept)
+                                data=data, content_type=content_type, accept=accept)
         return self.extract_content(response)
 
     def del_item(self, mms_id, holding_id, item_pid):
@@ -157,7 +157,7 @@ class Alma(object):
                                 {'mms_id': mms_id,
                                  'holding_id': holding_id,
                                  'item_pid': item_pid},
-                                data=data, accept=accept)
+                                data=data, content_type=content_type, accept=accept)
         return self.extract_content(response)
 
     def get_bib_requests(self, mms_id, accept='json'):
@@ -176,7 +176,7 @@ class Alma(object):
     def post_bib_request(self, mms_id, data, content_type='json', accept='json'):
         response = self.request('POST', 'bib_requests', 
                                 {'mms_id': mms_id},
-                                data=data, accept=accept)
+                                data=data, content_type=content_type, accept=accept)
         return self.extract_content(response)
         
 
@@ -186,14 +186,14 @@ class Alma(object):
                                 {'mms_id': mms_id,
                                  'holding_id': holding_id,
                                  'item_pid': item_pid},
-                                 data=data, accept=accept)
+                                 data=data, content_type=content_type, accept=accept)
         return self.extract_content(response)
 
     def put_bib_request(self, mms_id, request_id, data, content_type='json', accept='json'):
         response = self.request('PUT', 'bib_request',
                                 {'mms_id': mms_id,
                                  'request_id': request_id},
-                                  data=data, accept=accept)
+                                  data=data, content_type=content_type, accept=accept)
         return self.extract_content(response)
 
     def put_item_request(self, mms_id, holding_id, item_pid, request_id, 
@@ -203,7 +203,7 @@ class Alma(object):
                                  'holding_id': holding_id,
                                  'item_pid': item_pid,
                                  'request_id': request_id},
-                                  data=data, accept=accept)
+                                  data=data, content_type=content_type, accept=accept)
         return self.extract_content(response)
 
     def del_item_request(self, mms_id, holding_id, item_pid, request_id):
