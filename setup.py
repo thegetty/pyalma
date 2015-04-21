@@ -1,13 +1,14 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(
     name = 'pyalma',
-    packages = ['pyalma'],
+    packages = find_packages(),
     version = '0.0.1',
     description = 'Python client for ExLibris Alma',
     author = 'Getty Research Institute',
     author_email = 'jgomez@getty.edu',
     url = 'https://stash.getty.edu/projects/GRIIS/repos/pyalma/browse',
+    install_requires = ['pymarc', 'requests'],
     classifiers = [
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
