@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name = 'pyalma',
-    packages = ['pymarc', 'requests', 'responses'],
+    packages = ['pyalma'],
     version = '0.0.1',
     description = 'Python client for ExLibris Alma',
     author = 'Getty Research Institute',
