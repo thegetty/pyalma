@@ -3,6 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name = 'pyalma',
     packages = find_packages(),
+    test_suite="test",
     version = '0.0.1',
     description = 'Python client for ExLibris Alma',
     author = 'Getty Research Institute',
