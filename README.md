@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/gri-is/pyalma.svg?branch=master)](https://travis-ci.org/gri-is/pyalma)
+
+[![Coverage Status](https://coveralls.io/repos/github/gri-is/pyalma/badge.svg?branch=master)](https://coveralls.io/github/gri-is/pyalma?branch=master)
+
 PyAlma
 ======
 
