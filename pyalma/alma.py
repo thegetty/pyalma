@@ -4,6 +4,10 @@ import requests
 # internal import
 from . import records
 
+# imports for coroutines
+import asyncio
+import aiohttp
+from aiohttp import ClientSession, web
 
 __version__ = '0.1.0'
 __api_version__ = 'v1'
@@ -125,7 +129,7 @@ class Alma(object):
         return self.extract_content(response)
 
     def get_items(self, mms_id, holding_id, accept='json'):
-        response = self.request('GET', 'items', 
+        response = self.request('GET', 'items',
                                 {'mms_id': mms_id,
                                  'holding_id': holding_id},
                                 accept=accept)
@@ -153,7 +157,7 @@ class Alma(object):
 
     def post_loan(self, mms_id, holding_id, item_pid, data,
                   content_type='json', accept='json'):
-        response = self.request('POST', 'loan', 
+        response = self.request('POST', 'loan',
                                 {'mms_id': mms_id,
                                  'holding_id': holding_id,
                                  'item_pid': item_pid},
@@ -174,11 +178,11 @@ class Alma(object):
         return self.extract_content(response)
 
     def post_bib_request(self, mms_id, data, content_type='json', accept='json'):
-        response = self.request('POST', 'bib_requests', 
+        response = self.request('POST', 'bib_requests',
                                 {'mms_id': mms_id},
                                 data=data, content_type=content_type, accept=accept)
         return self.extract_content(response)
-        
+
 
     def post_item_request(self, mms_id, holding_id, item_pid, data,
                           content_type='json', accept='json'):
@@ -196,7 +200,7 @@ class Alma(object):
                                   data=data, content_type=content_type, accept=accept)
         return self.extract_content(response)
 
-    def put_item_request(self, mms_id, holding_id, item_pid, request_id, 
+    def put_item_request(self, mms_id, holding_id, item_pid, request_id,
                          data, content_type='json', accept='json'):
         response = self.request('PUT', 'item_request',
                                 {'mms_id': mms_id,
@@ -271,6 +275,69 @@ class Alma(object):
         data = self.get_item(mms_id, holding_id, item_pid)
         return records.Item(data)
 
+    '''
+    Below are coroutine methods
+    '''
+
+    # general method to open request, and return content body
+    async def cor_request(self, httpmethod, resource, ids, session, params={},
+                              data=None, accept='json', content_type=None):
+        async with session.request(method=httpmethod,
+                                   headers=self.headers(accept=accept, content_type=content_type),
+                                   url=self.fullurl(resource, ids),
+                                   params=params,
+                                   data=data) as response:
+            try:
+                response.raise_for_status()
+                ctype = response.headers['Content-Type']
+                if 'json' in ctype:
+                    body = await response.json()
+                else:
+                    body = await response.read(encoding='utf-8')
+                return body
+            except:
+                # this needs to be fixed to properly raise HTTPError
+                # HTTPError class herein will also need to be rewritten for coro
+                # the below errors will not result in coro terminating, it keeps retrying
+                body = await response.text(encoding='utf-8')
+                print("Raise for status failed: {}".format(body))
+                pass
+
+    # bounds request, so that no more than x connections can be
+    # open at once (currently set at 1000)
+    async def cor_bound_request(self, sem, httpmethod, resource, ids, session, params={},
+                                data=None, accept='json', content_type=None):
+        async with sem:
+            request = await self.cor_request(httpmethod, resource, ids, session)
+            return request
+
+    async def cor_run(self, httpmethod, resource, mms_ids, accept='json'):
+        tasks = []
+        sem = asyncio.Semaphore(1000)
+
+        # Fetch all responses within one Client session
+        # keep connection alive for all requests
+
+        async with ClientSession() as session:
+            for mms_id in mms_ids:
+                task = asyncio.ensure_future(self.cor_bound_request(sem,
+                                                                    httpmethod,
+                                                                    resource,
+                                                                    {'mms_id': mms_id},
+                                                                    session,
+                                                                    accept=accept))
+                tasks.append(task)
+            responses = await asyncio.gather(*tasks)
+            return responses
+
+    # method to request a list of mms_ids asynchronously
+    def get_bibs(self, mms_ids, accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('GET', 'bib', mms_ids))
+        finally:
+            loop.close()
+        return responses
 
 class HTTPError(Exception):
 
