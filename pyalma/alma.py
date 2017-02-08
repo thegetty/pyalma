@@ -7,7 +7,9 @@ from . import records
 # imports for coroutines
 import asyncio
 import aiohttp
-from aiohttp import ClientSession, web
+from aiohttp import ClientSession, web, errors
+import time
+from ratelimiter import RateLimiter
 
 __version__ = '0.1.0'
 __api_version__ = 'v1'
@@ -279,9 +281,11 @@ class Alma(object):
     Below are coroutine methods
     '''
 
-    # general method to open request, and return content body
     async def cor_request(self, httpmethod, resource, ids, session, params={},
                               data=None, accept='json', content_type=None):
+        """
+        Asynchronous request method.
+        """
         async with session.request(method=httpmethod,
                                    headers=self.headers(accept=accept, content_type=content_type),
                                    url=self.fullurl(resource, ids),
@@ -295,49 +299,70 @@ class Alma(object):
                 else:
                     body = await response.read(encoding='utf-8')
                 return body
-            except:
-                # this needs to be fixed to properly raise HTTPError
-                # HTTPError class herein will also need to be rewritten for coro
-                # the below errors will not result in coro terminating, it keeps retrying
+            except aiohttp.errors.HttpProcessingError:
+                status = response.status
+                method = response.method
+                url = response.url
                 body = await response.text(encoding='utf-8')
-                print("Raise for status failed: {}".format(body))
+                msg = "\nError in {} \n  HTTP Status: {}\n  Method: {}\n  URL: {}\n  Response: {}"
+                print(msg.format(ids, status, method, url, body))
                 pass
 
-    # bounds request, so that no more than x connections can be
-    # open at once (currently set at 1000)
     async def cor_bound_request(self, sem, httpmethod, resource, ids, session, params={},
                                 data=None, accept='json', content_type=None):
+        """
+        Bounds request, so that no more than x connections can be
+        open at once (set inside the cor_run)
+        """
         async with sem:
             request = await self.cor_request(httpmethod, resource, ids, session)
             return request
 
+    async def cor_limited(self, until):
+        duration = int(round(until - time.time()))
+        print("Rate limited, sleeping for {:d} seconds".format(duration))
+
     async def cor_run(self, httpmethod, resource, mms_ids, accept='json'):
         tasks = []
+
+        # set the simultaneous connection limit here
         sem = asyncio.Semaphore(1000)
 
-        # Fetch all responses within one Client session
-        # keep connection alive for all requests
+        # set the rate limit here
+        rate_limiter = RateLimiter(max_calls=20,
+                                   period=1,
+                                   callback=self.cor_limited)
 
         async with ClientSession() as session:
             for mms_id in mms_ids:
-                task = asyncio.ensure_future(self.cor_bound_request(sem,
-                                                                    httpmethod,
-                                                                    resource,
-                                                                    {'mms_id': mms_id},
-                                                                    session,
-                                                                    accept=accept))
+                async with rate_limiter:
+                    task = asyncio.ensure_future(self.cor_bound_request(sem,
+                                                                        httpmethod,
+                                                                        resource,
+                                                                        {'mms_id': mms_id},
+                                                                        session,
+                                                                        accept=accept))
+                    # create a delay of 0.04 seconds between calls
+                    # to help prevent API rate errors
+                    await asyncio.sleep(.04)
                 tasks.append(task)
             responses = await asyncio.gather(*tasks)
             return responses
 
-    # method to request a list of mms_ids asynchronously
+
     def get_bibs(self, mms_ids, accept='json'):
+        """
+        Asynchronous method to retrieve a list of bibs from a list of mms_ids
+        """
+
         loop = asyncio.get_event_loop()
         try:
             responses = loop.run_until_complete(self.cor_run('GET', 'bib', mms_ids))
         finally:
             loop.close()
         return responses
+
+
 
 class HTTPError(Exception):
 
