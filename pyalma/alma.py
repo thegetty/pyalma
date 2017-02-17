@@ -47,6 +47,7 @@ RESOURCES = {
     'loan': 'bibs/{mms_id}/holdings/{holding_id}/items/{item_pid}/loans'
 }
 
+MAX_CALLS_PER_SEC = 25
 
 class Alma(object):
 
@@ -58,6 +59,7 @@ class Alma(object):
             raise Exception(msg)
         self.apikey = apikey
         self.endpoint = ENDPOINTS[region]
+        self.max_calls = MAX_CALLS_PER_SEC
 
     @property
     def baseurl(self):
@@ -102,10 +104,6 @@ class Alma(object):
     return the response data in json or xml
     '''
 
-    def get_bib(self, mms_id, accept='json'):
-        response = self.request('GET', 'bib', {'mms_id': mms_id},
-                                accept=accept)
-        return self.extract_content(response)
 
     def put_bib(self, mms_id, data, content_type='json', accept='json'):
         response = self.request('PUT', 'bib', {'mms_id': mms_id},
@@ -282,65 +280,90 @@ class Alma(object):
     '''
 
     async def cor_request(self, httpmethod, resource, ids, session, params={},
-                              data=None, accept='json', content_type=None):
+                              data=None, accept='json', content_type=None, max_attempts=5):
         """
         Asynchronous request method.
         """
+        # set the rate limit here
+        attempts_left = max_attempts
+        rate_limiter = RateLimiter(max_calls=self.max_calls,
+                                   period=(6-attempts_left),
+                                   callback=self.cor_limited)
+
+
         async with session.request(method=httpmethod,
                                    headers=self.headers(accept=accept, content_type=content_type),
                                    url=self.fullurl(resource, ids),
                                    params=params,
                                    data=data) as response:
             try:
-                response.raise_for_status()
                 ctype = response.headers['Content-Type']
+                status = response.status
+                method = response.method
+                url = response.url
+                async with rate_limiter:
+                    response.raise_for_status()
                 if 'json' in ctype:
                     body = await response.json()
                 else:
                     body = await response.read(encoding='utf-8')
-                return body
+                return (ids, status, body)
             except aiohttp.errors.HttpProcessingError:
-                status = response.status
-                method = response.method
-                url = response.url
-                body = await response.text(encoding='utf-8')
-                msg = "\nError in {} \n  HTTP Status: {}\n  Method: {}\n  URL: {}\n  Response: {}"
-                print(msg.format(ids, status, method, url, body))
-                pass
+                msg = "\nError in {} \n  HTTP Status: {}\n  Method: {}\n  URL: {}\n  Response: {}".format(ids, status, method, url, body)
+                if status == 429:
+                    attempts_left -= 1
+                    if attempts_left < 0:
+                        return (ids, status, msg)
+                    else:
+                        until = time.time() + (rate_limiter.period)
+                        asyncio.ensure_future(self.cor_limited(until))
+                        await asyncio.sleep(rate_limiter.period)
+                        async with rate_limiter:
+                            self.cor_request(httpmethod, resource, ids, session, params=params, data=data, accept=accept, content_type=content_type, max_attempts=attempts_left)
+                else:
+                    return (ids, status, msg)
+
 
     async def cor_bound_request(self, sem, httpmethod, resource, ids, session, params={},
                                 data=None, accept='json', content_type=None):
         """
         Bounds request, so that no more than x connections can be
-        open at once (set inside the cor_run)
+        open at once (set inside self.cor_run)
         """
         async with sem:
             request = await self.cor_request(httpmethod, resource, ids, session)
             return request
 
     async def cor_limited(self, until):
+        """
+        rate limiting method to wrap calls
+        """
         duration = int(round(until - time.time()))
         print("Rate limited, sleeping for {:d} seconds".format(duration))
 
-    async def cor_run(self, httpmethod, resource, mms_ids, accept='json'):
+    async def cor_run(self, httpmethod, resource, input_params, accept='json'):
+        """
+        Takes a list of input_params, makes requests, returns responses
+        """
         tasks = []
 
         # set the simultaneous connection limit here
         sem = asyncio.Semaphore(1000)
 
         # set the rate limit here
-        rate_limiter = RateLimiter(max_calls=20,
+        rate_limiter = RateLimiter(max_calls=self.max_calls,
                                    period=1,
                                    callback=self.cor_limited)
 
         async with ClientSession() as session:
-            for mms_id in mms_ids:
+            for input_param in input_params:
                 async with rate_limiter:
                     task = asyncio.ensure_future(self.cor_bound_request(sem,
                                                                         httpmethod,
                                                                         resource,
-                                                                        {'mms_id': mms_id},
+                                                                        input_param['ids'],
                                                                         session,
+                                                                        data=input_param['data'],
                                                                         accept=accept))
                     # create a delay of 0.04 seconds between calls
                     # to help prevent API rate errors
@@ -349,20 +372,265 @@ class Alma(object):
             responses = await asyncio.gather(*tasks)
             return responses
 
+    """
+    Each of the below asynchronous methods takes input_params as a variable,
+    and returns a list of tuples.
 
-    def get_bibs(self, mms_ids, accept='json'):
-        """
-        Asynchronous method to retrieve a list of bibs from a list of mms_ids
-        """
+    input_params is a list of dictionaries in the following form:
+        [{
+            'data': data,
+            'ids':  {
+                    'mms_id': mms_id,
+                    'holding_id': holding_id,
+                    'item_pid': item_pid,
+                    'request_id': request_id
+                    }
+          },
+          ...
+          ]
+          Data must be "None" if you are using a get function.
+    Returns a list of tuples in form
+        [(ids, status,  bib),
+        ...
+        ]
+    """
 
+    def cor_get_bibs(self, input_params, accept='json'):
         loop = asyncio.get_event_loop()
         try:
-            responses = loop.run_until_complete(self.cor_run('GET', 'bib', mms_ids))
+            responses = loop.run_until_complete(self.cor_run('GET',
+                                                             'bib',
+                                                             input_params))
         finally:
             loop.close()
         return responses
 
+    def cor_put_bibs(self, input_params, content_type='json', accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('PUT',
+                                                             'bib',
+                                                             input_params,
+                                                             content_type=content_type,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
 
+    def cor_get_holdings(self, input_params, accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('GET',
+                                                             'holdings',
+                                                             input_params,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_get_holding(self, input_params, accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('GET',
+                                                             'holding',
+                                                             input_params,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_put_holding(self, input_params, content_type='json',
+                    accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('PUT',
+                                                             'holding',
+                                                             input_params,
+                                                             content_type=content_type,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_get_items(self, input_params, accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('GET',
+                                                             'items',
+                                                             input_params,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_get_item(self, input_params, accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('GET',
+                                                             'item',
+                                                             input_params,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_put_item(self, input_params, content_type='json',
+                 accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('PUT',
+                                                             'item',
+                                                             input_params,
+                                                             content_type=content_type,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_del_item(self, input_params):
+        pass
+
+    def cor_post_loan(self, input_params,
+                  content_type='json', accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('POST',
+                                                             'loan',
+                                                             input_params,
+                                                             content_type=content_type,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_get_bib_requests(self, input_params, accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('GET',
+                                                             'bib_requests',
+                                                             input_params,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_get_item_requests(self, input_params, accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('GET',
+                                                             'item_requests',
+                                                             input_params,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_post_bib_request(self, input_params,
+                         content_type='json', accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('POST',
+                                                             'bib_requests',
+                                                             input_params,
+                                                             content_type=content_type,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_post_item_request(self, input_params,
+                          content_type='json', accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('POST',
+                                                             'item_requests',
+                                                             input_params,
+                                                             content_type=content_type,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_put_bib_request(self, input_params,
+                            content_type='json', accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('PUT',
+                                                             'bib_request',
+                                                             input_params,
+                                                             content_type=content_type,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_put_item_request(self, input_params,
+                             content_type='json', accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('PUT',
+                                                             'item_request',
+                                                             input_params,
+                                                             content_type=content_type,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_del_item_request(self, input_params):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('DELETE',
+                                                             'item_request',
+                                                             input_params))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_del_bib_request(self, input_params):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('DELETE',
+                                                             'bib_request',
+                                                             input_params))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_get_bib_booking_availability(self, input_params, accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('GET',
+                                                             'bib_booking_availability',
+                                                             input_params,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_get_item_booking_availability(
+            self, input_params, accept='json'):
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('GET',
+                                                             'item_booking_availability',
+                                                             input_params,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_get_digreps(self, input_params, accept='json'):
+        pass
+
+    def cor_get_digrep(self, input_params, accept='json'):
+        pass
+
+    def cor_post_digrep(self, input_params, content_type='json', accept='json'):
+        pass
+
+    def cor_del_digrep(self, input_params, rep_id):
+        pass
 
 class HTTPError(Exception):
 
