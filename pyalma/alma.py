@@ -313,6 +313,7 @@ class Alma(object):
                     body = await response.read(encoding='utf-8')
                 return (ids, status, body)
             except aiohttp.errors.HttpProcessingError:
+                body = await response.text(encoding='utf-8')
                 msg = "\nError in {} \n  HTTP Status: {}\n  Method: {}\n  URL: {}\n  Response: {}".format(ids, status, method, url, body)
                 if status == 429:
                     attempts_left -= 1
@@ -323,7 +324,8 @@ class Alma(object):
                         asyncio.ensure_future(self.cor_limited(until))
                         await asyncio.sleep(rate_limiter.period)
                         async with rate_limiter:
-                            self.cor_request(httpmethod, resource, ids, session, params=params, data=data, accept=accept, content_type=content_type, max_attempts=attempts_left)
+                            result = await self.cor_request(httpmethod, resource, ids, session, params=params, data=data, accept=accept, content_type=content_type, max_attempts=attempts_left)
+                            return result
                 else:
                     return (ids, status, msg)
 
@@ -352,7 +354,7 @@ class Alma(object):
         tasks = []
 
         # set the simultaneous connection limit here
-        sem = asyncio.Semaphore(1000)
+        sem = asyncio.Semaphore(500)
 
         # set the rate limit here
         rate_limiter = RateLimiter(max_calls=self.max_calls,
