@@ -104,6 +104,10 @@ class Alma(object):
     return the response data in json or xml
     '''
 
+    def get_bib(self, mms_id, accept='json'):
+        response = self.request('GET', 'bib', {'mms_id': mms_id},
+                                accept=accept)
+        return self.extract_content(response)
 
     def put_bib(self, mms_id, data, content_type='json', accept='json'):
         response = self.request('PUT', 'bib', {'mms_id': mms_id},
