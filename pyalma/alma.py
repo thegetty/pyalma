@@ -11,6 +11,7 @@ from aiohttp import ClientSession, web, errors
 import time
 from ratelimiter import RateLimiter
 
+
 __version__ = '0.1.0'
 __api_version__ = 'v1'
 __apikey__ = os.getenv('ALMA_API_KEY')
@@ -104,12 +105,12 @@ class Alma(object):
     return the response data in json or xml
     '''
 
-    def get_bib(self, mms_id, accept='json'):
+    def get_bib(self, mms_id, accept='xml'):
         response = self.request('GET', 'bib', {'mms_id': mms_id},
                                 accept=accept)
         return self.extract_content(response)
 
-    def put_bib(self, mms_id, data, content_type='json', accept='json'):
+    def put_bib(self, mms_id, data, content_type='xml', accept='xml'):
         response = self.request('PUT', 'bib', {'mms_id': mms_id},
                                 data=data, content_type=content_type, accept=accept)
         return self.extract_content(response)
@@ -280,28 +281,37 @@ class Alma(object):
         return records.Item(data)
 
     '''
-    Below are coroutine methods
+    Below are coroutine methods.
+    Note that they currently all default to xml input and output,
+    for ease of use in receiving data in a GET and sending it back as a PUT.
     '''
 
     async def cor_request(self, httpmethod, resource, ids, session, params={},
-                              data=None, accept='json', content_type=None, max_attempts=5):
+                              data=None, accept='xml', content_type=None, max_attempts=5):
         """
-        Asynchronous request method.
+        Asynchronous request method
+        Uses session.request, an aiohttp method
+
+        To set rate limit:
+        - max_attempts is the maximum number of times you want to repeat a
+        call before giving up.
+        - set maximum calls per second in global variable MAX_CALLS_PER_SEC
         """
-        # set the rate limit here
         attempts_left = max_attempts
         rate_limiter = RateLimiter(max_calls=self.max_calls,
                                    period=(6-attempts_left),
                                    callback=self.cor_limited)
 
-
         async with session.request(method=httpmethod,
-                                   headers=self.headers(accept=accept, content_type=content_type),
+                                   headers=self.headers(accept='xml', content_type='xml'),
                                    url=self.fullurl(resource, ids),
                                    params=params,
                                    data=data) as response:
             try:
-                ctype = response.headers['Content-Type']
+                try:
+                    ctype = response.headers['Content-Type']
+                except:
+                    ctype = ''
                 status = response.status
                 method = response.method
                 url = response.url
@@ -310,11 +320,12 @@ class Alma(object):
                 if 'json' in ctype:
                     body = await response.json()
                 else:
-                    body = await response.read(encoding='utf-8')
+                    body = await response.text(encoding='utf-8')
                 return (ids, status, body)
             except aiohttp.errors.HttpProcessingError:
-                body = await response.text(encoding='utf-8')
+                body = await response.text()
                 msg = "\nError in {} \n  HTTP Status: {}\n  Method: {}\n  URL: {}\n  Response: {}".format(ids, status, method, url, body)
+                print(msg)
                 if status == 429:
                     attempts_left -= 1
                     if attempts_left < 0:
@@ -331,23 +342,23 @@ class Alma(object):
 
 
     async def cor_bound_request(self, sem, httpmethod, resource, ids, session, params={},
-                                data=None, accept='json', content_type=None):
+                                data=None, accept='xml', content_type='xml'):
         """
         Bounds request, so that no more than x connections can be
         open at once (set inside self.cor_run)
         """
         async with sem:
-            request = await self.cor_request(httpmethod, resource, ids, session)
+            request = await self.cor_request(httpmethod, resource, ids, session, data=data, accept=accept, content_type=content_type)
             return request
 
     async def cor_limited(self, until):
         """
-        rate limiting method to wrap calls
+        Rate limits calls to the server (set in cor_run)
         """
         duration = int(round(until - time.time()))
         print("Rate limited, sleeping for {:d} seconds".format(duration))
 
-    async def cor_run(self, httpmethod, resource, input_params, accept='json'):
+    async def cor_run(self, httpmethod, resource, input_params, accept='xml', content_type=None):
         """
         Takes a list of input_params, makes requests, returns responses
         """
@@ -370,7 +381,8 @@ class Alma(object):
                                                                         input_param['ids'],
                                                                         session,
                                                                         data=input_param['data'],
-                                                                        accept=accept))
+                                                                        accept=accept,
+                                                                        content_type=content_type))
                     # create a delay of 0.04 seconds between calls
                     # to help prevent API rate errors
                     await asyncio.sleep(.04)
@@ -394,24 +406,27 @@ class Alma(object):
           },
           ...
           ]
-          Data must be "None" if you are using a get function.
+
     Returns a list of tuples in form
-        [(ids, status,  bib),
+        [(ids, status, response),
         ...
         ]
     """
 
-    def cor_get_bibs(self, input_params, accept='json'):
+    def cor_get_bib(self, input_params, accept='xml'):
+        # input_params includes mms_id
         loop = asyncio.get_event_loop()
         try:
             responses = loop.run_until_complete(self.cor_run('GET',
                                                              'bib',
-                                                             input_params))
+                                                             input_params,
+                                                             accept=accept))
         finally:
             loop.close()
         return responses
 
-    def cor_put_bibs(self, input_params, content_type='json', accept='json'):
+    def cor_put_bib(self, input_params, content_type='xml', accept='xml'):
+        # input_params includes mms_id, data
         loop = asyncio.get_event_loop()
         try:
             responses = loop.run_until_complete(self.cor_run('PUT',
@@ -423,7 +438,8 @@ class Alma(object):
             loop.close()
         return responses
 
-    def cor_get_holdings(self, input_params, accept='json'):
+    def cor_get_holdings(self, input_params, accept='xml'):
+        # input_params includes mms_id
         loop = asyncio.get_event_loop()
         try:
             responses = loop.run_until_complete(self.cor_run('GET',
@@ -434,7 +450,8 @@ class Alma(object):
             loop.close()
         return responses
 
-    def cor_get_holding(self, input_params, accept='json'):
+    def cor_get_holding(self, input_params, accept='xml'):
+        # input_params includes mms_id, holding_id
         loop = asyncio.get_event_loop()
         try:
             responses = loop.run_until_complete(self.cor_run('GET',
@@ -445,8 +462,9 @@ class Alma(object):
             loop.close()
         return responses
 
-    def cor_put_holding(self, input_params, content_type='json',
-                    accept='json'):
+    def cor_put_holding(self, input_params, content_type='xml',
+                    accept='xml'):
+        # input_params includes mms_id, holding_id, data
         loop = asyncio.get_event_loop()
         try:
             responses = loop.run_until_complete(self.cor_run('PUT',
@@ -458,7 +476,8 @@ class Alma(object):
             loop.close()
         return responses
 
-    def cor_get_items(self, input_params, accept='json'):
+    def cor_get_items(self, input_params, accept='xml'):
+        # input_params includes mms_id, holding_id
         loop = asyncio.get_event_loop()
         try:
             responses = loop.run_until_complete(self.cor_run('GET',
@@ -469,7 +488,8 @@ class Alma(object):
             loop.close()
         return responses
 
-    def cor_get_item(self, input_params, accept='json'):
+    def cor_get_item(self, input_params, accept='xml'):
+        # input_params includes mms_id, holding_id, item_pid
         loop = asyncio.get_event_loop()
         try:
             responses = loop.run_until_complete(self.cor_run('GET',
@@ -480,8 +500,9 @@ class Alma(object):
             loop.close()
         return responses
 
-    def cor_put_item(self, input_params, content_type='json',
-                 accept='json'):
+    def cor_put_item(self, input_params, content_type='xml',
+                 accept='xml'):
+        # input_params includes mms_id, holding_id, item_pid, data
         loop = asyncio.get_event_loop()
         try:
             responses = loop.run_until_complete(self.cor_run('PUT',
@@ -496,8 +517,60 @@ class Alma(object):
     def cor_del_item(self, input_params):
         pass
 
+    def cor_get_bib_requests(self, input_params, accept='xml'):
+        # input_params includes mms_id
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('GET',
+                                                             'bib_requests',
+                                                             input_params,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_get_item_requests(self, input_params, accept='xml'):
+        # input_params includes mms_id, holding_id, item_pid
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('GET',
+                                                             'item_requests',
+                                                             input_params,
+                                                             accept=accept))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_del_item_request(self, input_params):
+        # input_params includes mms_id, holding_id, item_pid, request_id
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('DELETE',
+                                                             'item_request',
+                                                             input_params))
+        finally:
+            loop.close()
+        return responses
+
+    def cor_del_bib_request(self, input_params):
+        # input_params includes mms_id, request_id
+        loop = asyncio.get_event_loop()
+        try:
+            responses = loop.run_until_complete(self.cor_run('DELETE',
+                                                             'bib_request',
+                                                             input_params))
+        finally:
+            loop.close()
+        return responses
+
+    '''
+    WARNING: below methods are experimental only, and have not
+    been tested.
+    '''
+
     def cor_post_loan(self, input_params,
-                  content_type='json', accept='json'):
+                  content_type='xml', accept='xml'):
+        # input_params includes mms_id, holding_id, item_pid, data
         loop = asyncio.get_event_loop()
         try:
             responses = loop.run_until_complete(self.cor_run('POST',
@@ -509,30 +582,9 @@ class Alma(object):
             loop.close()
         return responses
 
-    def cor_get_bib_requests(self, input_params, accept='json'):
-        loop = asyncio.get_event_loop()
-        try:
-            responses = loop.run_until_complete(self.cor_run('GET',
-                                                             'bib_requests',
-                                                             input_params,
-                                                             accept=accept))
-        finally:
-            loop.close()
-        return responses
-
-    def cor_get_item_requests(self, input_params, accept='json'):
-        loop = asyncio.get_event_loop()
-        try:
-            responses = loop.run_until_complete(self.cor_run('GET',
-                                                             'item_requests',
-                                                             input_params,
-                                                             accept=accept))
-        finally:
-            loop.close()
-        return responses
-
     def cor_post_bib_request(self, input_params,
-                         content_type='json', accept='json'):
+                         content_type='xml', accept='xml'):
+        # input_params includes mms_id, data
         loop = asyncio.get_event_loop()
         try:
             responses = loop.run_until_complete(self.cor_run('POST',
@@ -545,7 +597,8 @@ class Alma(object):
         return responses
 
     def cor_post_item_request(self, input_params,
-                          content_type='json', accept='json'):
+                          content_type='xml', accept='xml'):
+        # input_params includes mms_id, holding_id, item_pid, data
         loop = asyncio.get_event_loop()
         try:
             responses = loop.run_until_complete(self.cor_run('POST',
@@ -558,7 +611,8 @@ class Alma(object):
         return responses
 
     def cor_put_bib_request(self, input_params,
-                            content_type='json', accept='json'):
+                            content_type='xml', accept='xml'):
+        # input_params includes mms_id, request_id, data
         loop = asyncio.get_event_loop()
         try:
             responses = loop.run_until_complete(self.cor_run('PUT',
@@ -571,7 +625,8 @@ class Alma(object):
         return responses
 
     def cor_put_item_request(self, input_params,
-                             content_type='json', accept='json'):
+                             content_type='xml', accept='xml'):
+        # input_params includes mms_id, holding_id, item_pid, request_id, data
         loop = asyncio.get_event_loop()
         try:
             responses = loop.run_until_complete(self.cor_run('PUT',
@@ -583,27 +638,8 @@ class Alma(object):
             loop.close()
         return responses
 
-    def cor_del_item_request(self, input_params):
-        loop = asyncio.get_event_loop()
-        try:
-            responses = loop.run_until_complete(self.cor_run('DELETE',
-                                                             'item_request',
-                                                             input_params))
-        finally:
-            loop.close()
-        return responses
-
-    def cor_del_bib_request(self, input_params):
-        loop = asyncio.get_event_loop()
-        try:
-            responses = loop.run_until_complete(self.cor_run('DELETE',
-                                                             'bib_request',
-                                                             input_params))
-        finally:
-            loop.close()
-        return responses
-
-    def cor_get_bib_booking_availability(self, input_params, accept='json'):
+    def cor_get_bib_booking_availability(self, input_params, accept='xml'):
+        # input_params includes mms_id
         loop = asyncio.get_event_loop()
         try:
             responses = loop.run_until_complete(self.cor_run('GET',
@@ -615,7 +651,8 @@ class Alma(object):
         return responses
 
     def cor_get_item_booking_availability(
-            self, input_params, accept='json'):
+            self, input_params, accept='xml'):
+        # input_params includes mms_id, holding_id, item_pid
         loop = asyncio.get_event_loop()
         try:
             responses = loop.run_until_complete(self.cor_run('GET',

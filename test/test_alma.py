@@ -454,13 +454,13 @@ class TestAlmaPOSTRequests(unittest.TestCase):
             callback=echo_body,
             content_type='application/json',
         )
-        
+
         with open('test/item_loan.dat', 'r') as r:
             responses.add(responses.POST, loan_re,
                           status=200,
                           content_type='application/json',
                           body=r.read())
-                
+
     @responses.activate
     def test_alma_post_bib_request(self):
         self.buildResponses()
@@ -470,7 +470,7 @@ class TestAlmaPOSTRequests(unittest.TestCase):
                                                             original_bib_request)
             self.assertEqual(len(responses.calls), 1)
             self.assertEqual(returned_bib_request, json.loads(original_bib_request))
-        
+
         with open('test/request.dat', 'r') as dat:
             bib_request_return = dat.read()
             bib_request_response = self.api.post_bib_request(9922405930001552,
