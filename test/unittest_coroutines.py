@@ -69,42 +69,70 @@ def setUpModule():
 #     return response
 
 
-class TestAsyncGETRequests(asynctest.TestCase):
+class TestAsyncBackground(asynctest.TestCase):
 
     maxDiff = None
 
     def setUp(self):
-        self.api = alma.Alma(apikey='unreal', region='EU')
+        self.api = alma.Alma(apikey='unreal', region='US')
 
-
-    @aioresponses()
-    def buildResponses(self, mocked):
+    def test_cor_run(self):
         loop = asyncio.get_event_loop()
         biburl = 'https://api-na.hosted.exlibrisgroup.com/almaws/v1/bibs/9922405930001552'
-        session = aiohttp.ClientSession()
-        with open('test/bib.dat', 'r') as b:
-            mocked.get(biburl,
-                       status=200,
-                       content_type='application/json',
-                       body=b.read())
-        resp = loop.run_until_complete(session.get(biburl))
-
-    async def test_get_bib(self):
-        self.buildResponses()
-        resp = self.api.cor_get_bib([{'mms_id': 9922405930001552}])
-        data = resp.json()
-        bib_data = self.api.get_bib(9922405930001552)
-        with open('test/bib.dat', 'r') as dat:
-            self.assertEqual(bib_data, json.loads(dat.read()))
-
-
-        # loop = asyncio.get_event_loop()
-        # with open('test/bib.dat', 'r') as dat:
-        #     b = dat.read()
-        # mocked.get('https://api-na.hosted.exlibrisgroup.com/almaws/v1/bibs/9922405930001552', status=200, body=b)
+        fh = open('test/bib.dat', 'r')
+        body = fh.read()
+        fh.close()
         # session = aiohttp.ClientSession()
-        # resp = loop.run_until_complete(session.get('https://api-na.hosted.exlibrisgroup.com/almaws/v1/bibs/9922405930001552'))
-        # print(next(resp.text()))
+        with aioresponses() as m:
+            m.get(biburl,
+                   status=200,
+                   content_type='application/json',
+                   body=body)
+            resp = loop.run_until_complete(self.api.cor_run('GET', 'bib', [{'ids': {'mms_id': 9922405930001552},'data':None}], accept='json'))
+            data = resp[0][2]
+            self.assertEqual(data, json.loads(body))
+
+    def test_cor_request(self):
+        loop = asyncio.get_event_loop()
+        biburl = 'https://api-na.hosted.exlibrisgroup.com/almaws/v1/bibs/9922405930001552'
+        fh = open('test/bib.dat', 'r')
+        body = fh.read()
+        fh.close()
+        session = aiohttp.ClientSession()
+        # creating a session outside of a coroutine is not advised
+        # should be another way
+        with aioresponses() as m:
+            m.get(biburl,
+                   status=200,
+                   content_type='application/json',
+                   body=body)
+            resp = loop.run_until_complete(self.api.cor_request('GET', 'bib', {'mms_id': 9922405930001552}, session, accept='json'))
+            data = resp[2]
+            self.assertEqual(data, json.loads(body))
+        session.close()
+
+class TestGETRequests(unittest.TestCase):
+
+    maxDiff = None
+
+    def setUp(self):
+        self.api = alma.Alma(apikey='unreal', region='US')
+
+    def test_cor_get_bib(self):
+        biburl = 'https://api-na.hosted.exlibrisgroup.com/almaws/v1/bibs/9922405930001552'
+        fh = open('test/bib.dat', 'r')
+        body = fh.read()
+        fh.close()
+        # session = aiohttp.ClientSession()
+        with aioresponses() as m:
+            m.get(biburl,
+                   status=200,
+                   content_type='application/json',
+                   body=body)
+
+            resp = self.api.cor_get_bib([{'ids':{'mms_id': 9922405930001552},'data':None}])
+            data = resp[0][2]
+            self.assertEqual(data, json.loads(body))
 
 
 if __name__ == '__main__':
