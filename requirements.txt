@@ -2,6 +2,7 @@ pymarc
 requests
 responses
 asyncio
-aiohttp
+aiohttp<2.0
 ratelimiter
-
+asynctest
+aioresponses

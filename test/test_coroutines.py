@@ -1,289 +1,292 @@
+import json
+import os
+from importlib import reload
+
 from pyalma import alma
+
+import asyncio
+import aiohttp
+import asynctest
+from aioresponses import aioresponses
+
 from datetime import datetime
-import csv
-import ast
-
-'''
-The following is a series of functional tests that will
-allow you to run speed tests on coroutine methods.
-
-To use, set the number of items you want to test in "TEST_NUM"
-You can only test one method at a time.
-
-However, the suite is designed to be run sequentially, to generate the
-files you need for later tests.
-'''
 
 
-# set the number of items you would like to test
-TEST_NUM = 1000
-API_KEY = 'l7xx5d65813a3dfb4b998a99f178aed4a9ef'
-REGION = 'US'
-
-api = alma.Alma(API_KEY, REGION)
+def setUpModule():
+    os.environ['ALMA_API_KEY'] = 'my fake key'
+    os.environ['ALMA_API_REGION'] = 'APAC'
+    reload(alma)
 
 
-def list_from_csv(csvfile, number):
+class TestAsyncRequests(asynctest.TestCase):
+
+    maxDiff = None
+
+    def setUp(self):
+        self.api = alma.Alma(apikey='unreal', region='US')
+
+    def test_cor_run(self):
+        loop = asyncio.get_event_loop()
+        ids = {'mms_id': 9922405930001552}
+        url = self.api.fullurl('bib', ids)
+        fh = open('test/bib.dat', 'r')
+        body = fh.read()
+        fh.close()
+        # session = aiohttp.ClientSession()
+        with aioresponses() as m:
+            m.get(url,
+                   status=200,
+                   content_type='application/json',
+                   body=body)
+            resp = loop.run_until_complete(self.api.cor_run('GET', 'bib', [{'ids': ids, 'data':None}], accept='json'))
+            data = resp[0][2]
+            self.assertEqual(data, json.loads(body))
+
+    def test_cor_request(self):
+        loop = asyncio.get_event_loop()
+        ids = {'mms_id': 9922405930001552}
+        url = self.api.fullurl('bib', ids)
+        fh = open('test/bib.dat', 'r')
+        body = fh.read()
+        fh.close()
+        session = aiohttp.ClientSession()
+        # creating a session outside of a coroutine is not advised
+        # and throws a warning.
+        # but I could not figure out another way
+        with aioresponses() as m:
+            m.get(url,
+                  status=200,
+                  content_type='application/json',
+                  body=body)
+            resp = loop.run_until_complete(self.api.cor_request('GET', 'bib', ids, session, accept='json'))
+            data = resp[2]
+            self.assertEqual(data, json.loads(body))
+        session.close()
+
     '''
-    Takes a csv file, column headings may be either:
-    - ids (with each row containin a dictionary of mms_id,
-      holding_id, item_pid, and/or request_id)and data,
-        OR
-    - mms_id, holding_id, item_pid, and or request_id; and data
-
-    Returns a list of dictionaries in format required for coroutines:
-        [{
-            'data': data,
-            'ids':  {
-                    'mms_id': mms_id,
-                    'holding_id': holding_id,
-                    'item_pid': item_pid,
-                    'request_id': request_id
-                    }
-          },
-          ...
-          ]
-
+    Below test is not working because searching the long list of
+    mock objects slows it down so much that the program becomes too slow
+    to test the semaphore limit
     '''
-    with open(csvfile, 'rt') as handle:
-        reader = csv.DictReader(handle, delimiter=',')
-        headers = reader.fieldnames
-        dict_rows = []
-        count = number
-        for row in reader:
-            dict_row = {}
-            if 'ids' not in headers:
-                dict_row['ids'] = {}
-                if count > 0:
-                    if 'data' not in headers:
-                        dict_row['data'] = None
-                    for header in headers:
-                        if header == 'data':
-                            dict_row[header] = row[header]
-                        elif header == "":
-                            continue
-                        else:
-                            dict_row['ids'][header] = row[header]
-                    dict_rows.append(dict_row)
-                    count -= 1
-                else:
-                    break
-            else:
-                if count > 0:
-                    dict_row['ids'] = ast.literal_eval(row['ids'])
-                    dict_row['data'] = row['data']
-                    dict_rows.append(dict_row)
-                    count -= 1
-                else:
-                    break
 
-        return dict_rows
+    # def test_semaphore(self):
+    #     self.api.max_calls = 100000
+    #     self.semaphore_limit = 2
+    #     ids = {'mms_id': 9922405930001552}
+    #     ids_in = {'ids': {'mms_id': 9922405930001552}, 'data': None}
+    #     ids_list = [ids_in] * 100
+    #     url = self.api.fullurl('bib', ids)
+    #     fh = open('test/bib.dat', 'r')
+    #     body = fh.read()
+    #     fh.close()
+    #     with aioresponses() as m:
+    #         for i in enumerate(ids_list):
+    #             m.get(url,
+    #                   status=200,
+    #                   content_type='application/json',
+    #                   body=body)
+    #         begin = datetime.now()
+    #         resp = self.api.cor_get_bib(ids_list)
+    #         end = datetime.now()
+    #         time_to_finish = (end - begin).total_seconds()
+    #         items_finished = len(resp)
+    #     print(self.api.max_calls)
+    #     print(items_finished/time_to_finish)
+    #     self.assertTrue(self.api.max_calls >= items_finished/time_to_finish)
 
-
-def write_to_csv(results, handle):
-    '''
-    Takes a list of results (a list of dictionaries),
-    Returns a CSV file with the given filename.
-    '''
-    with open(handle, 'w') as csvfile:
-        linewriter = csv.writer(csvfile)
-        linewriter.writerow(["ids", "status", "data"])
-        for line in results:
-            linewriter.writerow(line)
-
-
-def test_general(input_file, output_file, test_func):
-    '''
-    Takes a CSV of the data you wish to feed into a function, the filename you
-    desire for the output, and the name of the function you wish to test.
-    Returns a list of results (a list of dictionaries).
-    '''
-    begin = datetime.now()
-    test_input = list_from_csv(input_file, TEST_NUM)
-    test_output = test_func(test_input)
-    output_len = len(test_output)
-    end = datetime.now()
-    diff = end - begin
-    errors = 0
-    for line in test_output:
-        if line[1] > 200:
-            errors += 1
-    print('\n\nReturned {} rows, with {} errors'.format((output_len - errors), errors))
-    print("\n\nTime elapsed for {} ids: \n    Coroutines: {} \n ".format(output_len, diff))
-    write_to_csv(test_output, output_file)
-    return test_output
+    def test_rate_limit(self):
+        self.api.max_calls = 20
+        # self.semaphore_limit = 500
+        ids = {'mms_id': 9922405930001552}
+        ids_in = {'ids': {'mms_id': 9922405930001552}, 'data': None}
+        ids_list = [ids_in] * 40
+        url = self.api.fullurl('bib', ids)
+        fh = open('test/bib.dat', 'r')
+        body = fh.read()
+        fh.close()
+        with aioresponses() as m:
+            for i in enumerate(ids_list):
+                m.get(url,
+                      status=200,
+                      content_type='application/json',
+                      body=body)
+            begin = datetime.now()
+            resp = self.api.cor_get_bib(ids_list)
+            end = datetime.now()
+            time_to_finish = (end - begin).total_seconds()
+            items_finished = len(resp)
+        self.assertTrue(self.api.max_calls >= items_finished/time_to_finish)
 
 
-'''
-Below are tests for each coroutine method.
-'''
+    def test_cor_get_bib(self):
+        ids = {'mms_id': 9922405930001552}
+        url = self.api.fullurl('bib', ids)
+        fh = open('test/bib.dat', 'r')
+        body = fh.read()
+        fh.close()
+        # session = aiohttp.ClientSession()
+        with aioresponses() as m:
+            m.get(url,
+                  status=200,
+                  content_type='application/json',
+                  body=body)
+            resp = self.api.cor_get_bib([{'ids':ids,'data':None}])
+            bib = resp[0][2]
+            self.assertEqual(bib, json.loads(body))
 
+    def test_cor_get_holdings(self):
+        ids = {'mms_id': 99100383900121}
+        url = self.api.fullurl('holdings', ids)
+        fh = open('test/holds.dat', 'r')
+        body = fh.read()
+        fh.close()
+        # session = aiohttp.ClientSession()
+        with aioresponses() as m:
+            m.get(url,
+                  status=200,
+                  content_type='application/json',
+                  body=body)
+            resp = self.api.cor_get_holdings([{'ids':ids,'data':None}])
+            holdings = resp[0][2]
+            self.assertEqual(holdings, json.loads(body))
 
-def test_cor_get_bib(input_file='test/mms.csv',
-                     output_file='test/output_get_bib.csv', content_type='xml', accept='xml'):
-    print("\n\nTesting cor_get_bib")
-    test_func = api.cor_get_bib
-    return test_general(input_file, output_file, test_func)
+    def test_cor_get_holding(self):
+        ids = {'mms_id': 9922405930001552, 'holding_id': 22115858660001551}
+        url = self.api.fullurl('holding', ids)
+        fh = open('test/hold.dat', 'r')
+        body = fh.read()
+        fh.close()
+        # session = aiohttp.ClientSession()
+        with aioresponses() as m:
+            m.get(url,
+                  status=200,
+                  content_type='application/json',
+                  body=body)
+            resp = self.api.cor_get_holding([{'ids':ids,'data':None}])
+            holding_data = resp[0][2]
+            self.assertEqual(holding_data, json.loads(body))
 
+    def test_cor_get_items(self):
+        ids = {'mms_id': 9922405930001552, 'holding_id': 22115858660001551}
+        url = self.api.fullurl('items', ids)
+        fh = open('test/items.dat', 'r')
+        body = fh.read()
+        fh.close()
+        # session = aiohttp.ClientSession()
+        with aioresponses() as m:
+            m.get(url,
+                  status=200,
+                  content_type='application/json',
+                  body=body)
+            resp = self.api.cor_get_items([{'ids': ids, 'data':None}])
+            items_data = resp[0][2]
+            self.assertEqual(items_data, json.loads(body))
 
-def test_cor_put_bib(input_file="test/output_get_bib.csv",
-                     output_file='test/output_put_bib.csv', content_type='xml', accept='xml'):
-    print("\n\nTesting cor_put_bib")
-    test_func = api.cor_put_bib
-    return test_general(input_file, output_file, test_func)
+    def test_cor_get_bib_requests(self):
+        ids = {'mms_id': 9922405930001552}
+        url = self.api.fullurl('bib_requests', ids)
+        fh = open('test/request.dat', 'r')
+        body = fh.read()
+        fh.close()
+        # session = aiohttp.ClientSession()
+        with aioresponses() as m:
+            m.get(url,
+                  status=200,
+                  content_type='application/json',
+                  body=body)
+            resp = self.api.cor_get_bib_requests([{'ids': ids, 'data':None}])
+            bib_requests_data = resp[0][2]
+            self.assertEqual(bib_requests_data, json.loads(body))
 
+    def test_cor_get_item_requests(self):
+        ids = {'mms_id': 9922405930001552, 'holding_id': 22115858660001551, 'item_pid': 23115858650001551}
+        url = self.api.fullurl('item_requests', ids)
+        fh = open('test/request.dat', 'r')
+        body = fh.read()
+        fh.close()
+        # session = aiohttp.ClientSession()
+        with aioresponses() as m:
+            m.get(url,
+                  status=200,
+                  content_type='application/json',
+                  body=body)
+            resp = self.api.cor_get_item_requests([{'ids': ids, 'data':None}])
+            item_requests_data = resp[0][2]
+            self.assertEqual(item_requests_data, json.loads(body))
 
-def test_cor_get_holdings(input_file='test/mms_in.csv',
-                          output_file='test/output_get_holdings.csv'):
-    print("\n\nTesting cor_get_holdings")
-    test_func = api.cor_get_holdings
-    test_general(input_file, output_file, test_func)
+    def test_cor_put_bib(self):
+        ids = {'mms_id': 9922405930001552}
+        url = self.api.fullurl('bib', ids)
+        fh = open('test/bib2.dat', 'r')
+        original_bib = fh.read()
+        fh.close()
+        # session = aiohttp.ClientSession()
+        with aioresponses() as m:
+            m.put(url,
+                  status=200,
+                  content_type='application/xml',
+                  body=original_bib)
+            resp = self.api.cor_put_bib([{'ids': ids, 'data': original_bib}])
+            returned_bib = resp[0][2]
+            self.assertEqual(original_bib, returned_bib)
 
+    def test_cor_put_holding(self):
+        ids = {'mms_id': 9922405930001552, 'holding_id': 22115858660001551}
+        url = self.api.fullurl('holding', ids)
+        fh = open('test/hold2.dat', 'r')
+        original_holding = fh.read()
+        fh.close()
+        # session = aiohttp.ClientSession()
+        with aioresponses() as m:
+            m.put(url,
+                  status=200,
+                  content_type='application/xml',
+                  body=original_holding)
+            resp = self.api.cor_put_holding([{'ids': ids, 'data': original_holding}])
+            returned_holding = resp[0][2]
+            self.assertEqual(original_holding, returned_holding)
 
-def test_cor_get_holding(input_file='test/mms_holding.csv',
-                         output_file="test/output_get_holding.csv"):
-    print("\n\nTesting cor_get_holding")
-    test_func = api.cor_get_holding
-    test_general(input_file, output_file, test_func)
+    def test_cor_put_item(self):
+        ids = {'mms_id': 99110223950001020, 'holding_id': 22344156400001021, 'item_pid': 23344156380001021}
+        url = self.api.fullurl('item', ids)
+        fh = open('test/hold2.dat', 'r')
+        original_item = fh.read()
+        fh.close()
+        # session = aiohttp.ClientSession()
+        with aioresponses() as m:
+            m.put(url,
+                  status=200,
+                  content_type='application/xml',
+                  body=original_item)
+            resp = self.api.cor_put_item([{'ids': ids, 'data': original_item}])
+            returned_item = resp[0][2]
+            self.assertEqual(original_item, returned_item)
 
+    def test_cor_del_bib_request(self):
+        ids = {'mms_id': 9922405930001552, 'request_id': 83013520000121}
+        url = self.api.fullurl('bib_request', ids)
+        with aioresponses() as m:
+            m.delete(url,
+                     status=200,
+                     content_type='application/xml',
+                     body='')
+            expected = ''
+            resp = self.api.cor_del_bib_request([{'ids': ids, 'data': None}])
+            bib_request_response = resp[0][2]
+            self.assertEqual(expected, bib_request_response)
 
-def test_cor_put_holding(input_file='test/output_get_holding.csv',
-                         output_file='test/output_put_holding.csv'):
-    print("\n\nTesting cor_put_holding")
-    test_func = api.cor_put_holding
-    test_general(input_file, output_file, test_func)
-
-def test_cor_get_items(input_file='test/mms_holding.csv',
-                       output_file='test/output_get_items.csv'):
-    print("\n\nTesting cor_get_items")
-    test_func = api.cor_get_items
-    test_general(input_file, output_file, test_func)
-
-
-def test_cor_get_item(input_file='test/mms_holding_item.csv',
-                      output_file='test/output_get_item.csv'):
-    print("\n\nTesting cor_get_item")
-    test_func = api.cor_get_item
-    test_general(input_file, output_file, test_func)
-
-
-def test_cor_put_item(input_file='test/output_get_item.csv',
-                      output_file='test/output_put_item.csv'):
-    print("\n\nTesting cor_put_item")
-    test_func = api.cor_put_item
-    test_general(input_file, output_file, test_func)
-
-
-def test_cor_post_loan(input_file='test/mms_holding_item_data.csv',
-                       output_file='test/output_post_loan.csv'):
-    print("\n\nTesting cor_post_loan")
-    test_func = api.cor_post_loan
-    test_general(input_file, output_file, test_func)
-
-
-def test_cor_get_bib_requests(input_file='test/mms_in.csv',
-                              output_file='test/output_get_bib_requests.csv'):
-    print("\n\nTesting cor_get_bib_requests")
-    test_func = api.cor_get_bib_requests
-    test_general(input_file, output_file, test_func)
-
-
-def test_cor_get_item_requests(input_file='test/mms_holdings_items_with_requests.csv',
-                               output_file='test/output_get_item_requests.csv'):
-    print("\n\nTesting cor_get_item_requests")
-    test_func = api.cor_get_item_requests
-    test_general(input_file, output_file, test_func)
-
-
-def test_cor_post_bib_request(input_file='test/item_request_objects.csv',
-                              output_file='test/output_post_bib_request.csv'):
-    print("\n\nTesting cor_post_bib_request")
-    test_func = api.cor_post_bib_request
-    test_general(input_file, output_file, test_func)
-
-
-def test_cor_post_item_request(input_file='test/item_request_objects.csv',
-                               output_file='test/output_put_item_request.csv'):
-    print("\n\nTesting cor_post_item_request")
-    test_func = api.cor_post_item_request
-    test_general(input_file, output_file, test_func)
-
-
-def test_cor_put_bib_request(input_file='test/output_get_bib_requests.csv',
-                               output_file='test/output_put_bib_request.csv'):
-    print("\n\nTesting cor_put_bib_request")
-    test_func = api.cor_put_bib_request
-    test_general(input_file, output_file, test_func)
-
-def test_cor_put_item_request(input_file='test/output_get_item_requests.csv',
-                               output_file='test/output_put_item_request.csv'):
-    print("\n\nTesting cor_put_item_request")
-    test_func = api.cor_put_item_request
-    test_general(input_file, output_file, test_func)
-
-
-def test_cor_del_item_request(input_file='test/item_request_objects.csv',
-                               output_file='test/output_del_item_request.csv'):
-    print("\n\nTesting cor_del_item_request")
-    test_func = api.cor_del_item_request
-    test_general(input_file, output_file, test_func)
-
-
-def test_cor_del_bib_request(input_file='test/item_request_objects.csv',
-                               output_file='test/output_del_bib_request.csv'):
-    print("\n\nTesting cor_del_bib_request")
-    test_func = api.cor_del_bib_request
-    test_general(input_file, output_file, test_func)
-
-
-def test_cor_get_bib_booking_availability(input_file='test/mms.csv',
-                                          output_file='test/output_get_bib_booking_availability.csv'):
-    print("\n\nTesting cor_get_bib_booking_availability")
-    test_func = api.cor_get_bib_booking_availability
-    test_general(input_file, output_file, test_func)
-
-
-def test_cor_get_item_booking_availability(input_file='test/mms_holding_item.csv',
-                                           output_file='test/output_get_item_booking_availability.csv'):
-    print("\n\nTesting cor_get_item_booking_availability")
-    test_func = api.cor_get_item_booking_availability
-    test_general(input_file, output_file, test_func)
-
+    def test_cor_del_item_request(self):
+        ids = {'mms_id': 9922405930001552, 'holding_id': 22115858660001551, 'item_pid': 23115858650001551, 'request_id': 83013520000121}
+        url = self.api.fullurl('item_request', ids)
+        with aioresponses() as m:
+            m.delete(url,
+                     status=200,
+                     content_type='application/xml',
+                     body='')
+            expected = ''
+            resp = self.api.cor_del_item_request([{'ids': ids, 'data': None}])
+            item_request_response = resp[0][2]
+            self.assertEqual(expected, item_request_response)
 
 if __name__ == '__main__':
-
-    test_cor_get_bib()
-    # test_cor_put_bib()
-
-    # test_cor_get_holdings()
-
-    # test_cor_get_holding()
-    # test_cor_put_holding()
-
-    # test_cor_get_items()
-
-    # test_cor_get_item()
-    # test_cor_put_item()
-
-    # test_cor_get_bib_requests()
-    # test_cor_get_item_requests()
-
-
-
-    '''
-    Tests below are for not finalized methods:
-    '''
-
-    # test_cor_del_bib_request()
-    # test_cor_del_item_request()
-
-    # test_cor_post_loan()
-
-    # test_cor_post_bib_request()
-    # test_cor_post_item_request()
-
-    # test_cor_put_bib_request()
-    # test_cor_put_item_request()
-
-    # test_cor_get_bib_booking_availability()
-    # test_cor_get_item_booking_availability()
+    asynctest.main()
