@@ -1,5 +1,6 @@
 # Python cahce directories
 __pycache__/
+*.pyc
 
 # virtual environment
 ENV

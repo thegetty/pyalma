@@ -1,4 +1,8 @@
 pymarc
 requests
 responses
-
+asyncio
+aiohttp<2.0
+ratelimiter
+asynctest
+aioresponses
