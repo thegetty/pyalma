@@ -6,11 +6,17 @@ import ast
 '''
 The following is a series of functional tests that will
 allow you to run speed tests on coroutine methods.
+
+To use, set the number of items you want to test in "TEST_NUM"
+You can only test one method at a time.
+
+However, the suite is designed to be run sequentially, to generate the
+files you need for later tests.
 '''
 
 
 # set the number of items you would like to test
-TEST_NUM = 20
+TEST_NUM = 1000
 API_KEY = 'l7xx5d65813a3dfb4b998a99f178aed4a9ef'
 REGION = 'US'
 
@@ -113,132 +119,132 @@ Below are tests for each coroutine method.
 '''
 
 
-def test_cor_get_bib(input_file='mms_in.csv',
-                     output_file='output_get_bib.csv', content_type='xml', accept='xml'):
+def test_cor_get_bib(input_file='test/mms.csv',
+                     output_file='test/output_get_bib.csv', content_type='xml', accept='xml'):
     print("\n\nTesting cor_get_bib")
     test_func = api.cor_get_bib
     return test_general(input_file, output_file, test_func)
 
 
-def test_cor_put_bib(input_file="output_get_bib.csv",
-                     output_file='output_put_bib.csv', content_type='xml', accept='xml'):
+def test_cor_put_bib(input_file="test/output_get_bib.csv",
+                     output_file='test/output_put_bib.csv', content_type='xml', accept='xml'):
     print("\n\nTesting cor_put_bib")
     test_func = api.cor_put_bib
     return test_general(input_file, output_file, test_func)
 
 
-def test_cor_get_holdings(input_file='mms.csv',
-                          output_file='output_get_holdings.csv'):
+def test_cor_get_holdings(input_file='test/mms_in.csv',
+                          output_file='test/output_get_holdings.csv'):
     print("\n\nTesting cor_get_holdings")
     test_func = api.cor_get_holdings
     test_general(input_file, output_file, test_func)
 
 
-def test_cor_get_holding(input_file='mms_holding.csv',
-                         output_file="output_get_holding.csv"):
+def test_cor_get_holding(input_file='test/mms_holding.csv',
+                         output_file="test/output_get_holding.csv"):
     print("\n\nTesting cor_get_holding")
     test_func = api.cor_get_holding
     test_general(input_file, output_file, test_func)
 
 
-def test_cor_put_holding(input_file='output_get_holding.csv',
-                         output_file='output_put_holding.csv'):
+def test_cor_put_holding(input_file='test/output_get_holding.csv',
+                         output_file='test/output_put_holding.csv'):
     print("\n\nTesting cor_put_holding")
     test_func = api.cor_put_holding
     test_general(input_file, output_file, test_func)
 
-def test_cor_get_items(input_file='mms_holding.csv',
-                       output_file='output_get_items.csv'):
+def test_cor_get_items(input_file='test/mms_holding.csv',
+                       output_file='test/output_get_items.csv'):
     print("\n\nTesting cor_get_items")
     test_func = api.cor_get_items
     test_general(input_file, output_file, test_func)
 
 
-def test_cor_get_item(input_file='mms_holding_item.csv',
-                      output_file='output_get_item.csv'):
+def test_cor_get_item(input_file='test/mms_holding_item.csv',
+                      output_file='test/output_get_item.csv'):
     print("\n\nTesting cor_get_item")
     test_func = api.cor_get_item
     test_general(input_file, output_file, test_func)
 
 
-def test_cor_put_item(input_file='output_get_item.csv',
-                      output_file='output_put_item.csv'):
+def test_cor_put_item(input_file='test/output_get_item.csv',
+                      output_file='test/output_put_item.csv'):
     print("\n\nTesting cor_put_item")
     test_func = api.cor_put_item
     test_general(input_file, output_file, test_func)
 
 
-def test_cor_post_loan(input_file='mms_holding_item_data.csv',
-                       output_file='output_post_loan.csv'):
+def test_cor_post_loan(input_file='test/mms_holding_item_data.csv',
+                       output_file='test/output_post_loan.csv'):
     print("\n\nTesting cor_post_loan")
     test_func = api.cor_post_loan
     test_general(input_file, output_file, test_func)
 
 
-def test_cor_get_bib_requests(input_file='mms_in.csv',
-                              output_file='output_get_bib_requests.csv'):
+def test_cor_get_bib_requests(input_file='test/mms_in.csv',
+                              output_file='test/output_get_bib_requests.csv'):
     print("\n\nTesting cor_get_bib_requests")
     test_func = api.cor_get_bib_requests
     test_general(input_file, output_file, test_func)
 
 
-def test_cor_get_item_requests(input_file='mms_holdings_items_with_requests.csv',
-                               output_file='output_get_item_requests.csv'):
+def test_cor_get_item_requests(input_file='test/mms_holdings_items_with_requests.csv',
+                               output_file='test/output_get_item_requests.csv'):
     print("\n\nTesting cor_get_item_requests")
     test_func = api.cor_get_item_requests
     test_general(input_file, output_file, test_func)
 
 
-def test_cor_post_bib_request(input_file='item_request_objects.csv',
-                              output_file='output_post_bib_request.csv'):
+def test_cor_post_bib_request(input_file='test/item_request_objects.csv',
+                              output_file='test/output_post_bib_request.csv'):
     print("\n\nTesting cor_post_bib_request")
     test_func = api.cor_post_bib_request
     test_general(input_file, output_file, test_func)
 
 
-def test_cor_post_item_request(input_file='item_request_objects.csv',
-                               output_file='output_put_item_request.csv'):
+def test_cor_post_item_request(input_file='test/item_request_objects.csv',
+                               output_file='test/output_put_item_request.csv'):
     print("\n\nTesting cor_post_item_request")
     test_func = api.cor_post_item_request
     test_general(input_file, output_file, test_func)
 
 
-def test_cor_put_bib_request(input_file='output_get_bib_requests.csv',
-                               output_file='output_put_bib_request.csv'):
+def test_cor_put_bib_request(input_file='test/output_get_bib_requests.csv',
+                               output_file='test/output_put_bib_request.csv'):
     print("\n\nTesting cor_put_bib_request")
     test_func = api.cor_put_bib_request
     test_general(input_file, output_file, test_func)
 
-def test_cor_put_item_request(input_file='output_get_item_requests.csv',
-                               output_file='output_put_item_request.csv'):
+def test_cor_put_item_request(input_file='test/output_get_item_requests.csv',
+                               output_file='test/output_put_item_request.csv'):
     print("\n\nTesting cor_put_item_request")
     test_func = api.cor_put_item_request
     test_general(input_file, output_file, test_func)
 
 
-def test_cor_del_item_request(input_file='item_request_objects.csv',
-                               output_file='output_del_item_request.csv'):
+def test_cor_del_item_request(input_file='test/item_request_objects.csv',
+                               output_file='test/output_del_item_request.csv'):
     print("\n\nTesting cor_del_item_request")
     test_func = api.cor_del_item_request
     test_general(input_file, output_file, test_func)
 
 
-def test_cor_del_bib_request(input_file='item_request_objects.csv',
-                               output_file='output_del_bib_request.csv'):
+def test_cor_del_bib_request(input_file='test/item_request_objects.csv',
+                               output_file='test/output_del_bib_request.csv'):
     print("\n\nTesting cor_del_bib_request")
     test_func = api.cor_del_bib_request
     test_general(input_file, output_file, test_func)
 
 
-def test_cor_get_bib_booking_availability(input_file='mms.csv',
-                                          output_file='output_get_bib_booking_availability.csv'):
+def test_cor_get_bib_booking_availability(input_file='test/mms.csv',
+                                          output_file='test/output_get_bib_booking_availability.csv'):
     print("\n\nTesting cor_get_bib_booking_availability")
     test_func = api.cor_get_bib_booking_availability
     test_general(input_file, output_file, test_func)
 
 
-def test_cor_get_item_booking_availability(input_file='mms_holding_item.csv',
-                                           output_file='output_get_item_booking_availability.csv'):
+def test_cor_get_item_booking_availability(input_file='test/mms_holding_item.csv',
+                                           output_file='test/output_get_item_booking_availability.csv'):
     print("\n\nTesting cor_get_item_booking_availability")
     test_func = api.cor_get_item_booking_availability
     test_general(input_file, output_file, test_func)
@@ -262,12 +268,14 @@ if __name__ == '__main__':
     # test_cor_get_bib_requests()
     # test_cor_get_item_requests()
 
-    # test_cor_del_bib_request()
-    # test_cor_del_item_request()
+
 
     '''
-    Tests below will currently fail:
+    Tests below are for not finalized methods:
     '''
+
+    # test_cor_del_bib_request()
+    # test_cor_del_item_request()
 
     # test_cor_post_loan()
 

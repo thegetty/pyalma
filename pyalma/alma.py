@@ -49,6 +49,7 @@ RESOURCES = {
 }
 
 MAX_CALLS_PER_SEC = 25
+SEMAPHORE_LIM = 500
 
 class Alma(object):
 
@@ -61,6 +62,7 @@ class Alma(object):
         self.apikey = apikey
         self.endpoint = ENDPOINTS[region]
         self.max_calls = MAX_CALLS_PER_SEC
+        self.semaphore_limit = SEMAPHORE_LIM
 
     @property
     def baseurl(self):
@@ -314,7 +316,7 @@ class Alma(object):
                     ctype = ''
                 status = response.status
                 method = response.method
-                url = response.url
+                url = response.url_obj
                 async with rate_limiter:
                     response.raise_for_status()
                 if 'json' in ctype:
@@ -325,10 +327,11 @@ class Alma(object):
             except aiohttp.errors.HttpProcessingError:
                 body = await response.text()
                 msg = "\nError in {} \n  HTTP Status: {}\n  Method: {}\n  URL: {}\n  Response: {}".format(ids, status, method, url, body)
-                print(msg)
+
                 if status == 429:
                     attempts_left -= 1
                     if attempts_left < 0:
+                        print(msg)
                         return (ids, status, msg)
                     else:
                         until = time.time() + (rate_limiter.period)
@@ -365,7 +368,7 @@ class Alma(object):
         tasks = []
 
         # set the simultaneous connection limit here
-        sem = asyncio.Semaphore(500)
+        sem = asyncio.Semaphore(self.semaphore_limit)
 
         # set the rate limit here
         rate_limiter = RateLimiter(max_calls=self.max_calls,
@@ -374,20 +377,21 @@ class Alma(object):
 
         async with ClientSession() as session:
             for input_param in input_params:
-                async with rate_limiter:
-                    task = asyncio.ensure_future(self.cor_bound_request(sem,
-                                                                        httpmethod,
-                                                                        resource,
-                                                                        input_param['ids'],
-                                                                        session,
-                                                                        data=input_param['data'],
-                                                                        accept=accept,
-                                                                        content_type=content_type))
-                    # create a delay of 0.04 seconds between calls
-                    # to help prevent API rate errors
-                    await asyncio.sleep(.04)
+
+                task = asyncio.ensure_future(self.cor_bound_request(sem,
+                                                                    httpmethod,
+                                                                    resource,
+                                                                    input_param['ids'],
+                                                                    session,
+                                                                    data=input_param['data'],
+                                                                    accept=accept,
+                                                                    content_type=content_type))
+                # create a delay of between calls
+                # to help prevent API rate errors
+                await asyncio.sleep(1/self.max_calls)
                 tasks.append(task)
-            responses = await asyncio.gather(*tasks)
+            async with rate_limiter:
+                responses = await asyncio.gather(*tasks)
             return responses
 
     """
@@ -514,8 +518,7 @@ class Alma(object):
             loop.close()
         return responses
 
-    def cor_del_item(self, input_params):
-        pass
+
 
     def cor_get_bib_requests(self, input_params, accept='xml'):
         # input_params includes mms_id
@@ -564,9 +567,13 @@ class Alma(object):
         return responses
 
     '''
-    WARNING: below methods are experimental only, and have not
-    been tested.
+    WARNING: below methods have not been fully implemented or
+    been tested.  To be complete, tehse methods will require the
+    appropriate query strings parameters to be passed into session.request
+    within self.cor_request, which has not yet been implemented.
     '''
+    def cor_del_item(self, input_params):
+        pass
 
     def cor_post_loan(self, input_params,
                   content_type='xml', accept='xml'):
