@@ -249,7 +249,7 @@ class TestAsyncRequests(asynctest.TestCase):
     def test_cor_put_item(self):
         ids = {'mms_id': 99110223950001020, 'holding_id': 22344156400001021, 'item_pid': 23344156380001021}
         url = self.api.fullurl('item', ids)
-        fh = open('test/hold2.dat', 'r')
+        fh = open('test/item2.dat', 'r')
         original_item = fh.read()
         fh.close()
         # session = aiohttp.ClientSession()
