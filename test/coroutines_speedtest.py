@@ -15,8 +15,8 @@ files you need for later tests.
 
 # set the number of items you would like to test
 TEST_NUM = 1000
-API_KEY = 'l7xx5d65813a3dfb4b998a99f178aed4a9ef'
-REGION = 'US'
+API_KEY = ''
+REGION = ''
 
 api = alma.Alma(API_KEY, REGION)
 
