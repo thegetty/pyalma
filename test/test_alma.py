@@ -6,7 +6,7 @@ import unittest
 
 import responses
 
-from pyalma import alma, records
+from pyalma import alma
 
 
 def setUpModule():
@@ -188,23 +188,11 @@ class TestAlmaGETRequests(unittest.TestCase):
             self.assertEqual(bib_data, json.loads(dat.read()))
 
     @responses.activate
-    def test_alma_bib(self):
-        self.buildResponses()
-        bib = self.api.bib(9922405930001552)
-        self.assertIsInstance(bib, records.Bib)
-
-    @responses.activate
     def test_alma_get_holdings(self):
         self.buildResponses()
         holdings_data = self.api.get_holdings(99100383900121)
         with open('test/holds.dat', 'r') as dat:
             self.assertEqual(holdings_data, json.loads(dat.read()))
-
-    @responses.activate
-    def test_alma_holdings(self):
-        self.buildResponses()
-        holdings = self.api.holdings(99100383900121)
-        self.assertIsInstance(holdings, records.Holdings)
 
     @responses.activate
     def test_alma_get_holding(self):
@@ -216,23 +204,11 @@ class TestAlmaGETRequests(unittest.TestCase):
             self.assertEqual(holding_data, json.loads(dat.read()))
 
     @responses.activate
-    def test_alma_holding(self):
-        self.buildResponses()
-        holding = self.api.holding(9922405930001552, 22115858660001551)
-        self.assertIsInstance(holding, records.Holding)
-
-    @responses.activate
     def test_alma_get_items(self):
         self.buildResponses()
         items_data = self.api.get_items(99100383900121, 2221159990000121)
         with open('test/items.dat', 'r') as dat:
             self.assertEqual(items_data, json.loads(dat.read()))
-
-    @responses.activate
-    def test_alma_items(self):
-        self.buildResponses()
-        items = self.api.items(99100383900121, 2221159990000121)
-        self.assertIsInstance(items, records.Items)
 
     @responses.activate
     def test_alma_get_item(self):
@@ -243,15 +219,6 @@ class TestAlmaGETRequests(unittest.TestCase):
             23115858650001551)
         with open('test/item.dat', 'r') as dat:
             self.assertEqual(item_data, json.loads(dat.read()))
-
-    @responses.activate
-    def test_alma_item(self):
-        self.buildResponses()
-        item = self.api.item(
-            9922405930001552,
-            22115858660001551,
-            23115858650001551)
-        self.assertIsInstance(item, records.Item)
 
     @responses.activate
     def test_alma_get_bib_requests(self):

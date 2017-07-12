@@ -4,7 +4,7 @@ from pyalma.alma import Alma
 from datetime import datetime
 import csv
 
-api = Alma(apikey='l7xx5d65813a3dfb4b998a99f178aed4a9ef', region='US')
+api = Alma(apikey='', region='')
 
 
 # creates a list of ids of number length

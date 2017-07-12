@@ -1,8 +1,6 @@
 import os
 # external imports
 import requests
-# internal import
-from . import records
 
 # imports for coroutines
 import asyncio
