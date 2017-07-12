@@ -16,6 +16,8 @@ __version__ = '0.1.0'
 __api_version__ = 'v1'
 __apikey__ = os.getenv('ALMA_API_KEY')
 __region__ = os.getenv('ALMA_API_REGION')
+__circ_desk__ = os.getenv('ALMA_API_CIRC_DESK')
+__library__ = os.getenv('ALMA_API_LIBRARY')
 
 ENDPOINTS = {
     'US': 'https://api-na.hosted.exlibrisgroup.com',
@@ -45,7 +47,8 @@ RESOURCES = {
     'item_booking_availability':
         'bibs/{mms_id}/holdings/{holding_id}/items/' +
         '{item_pid}/booking-availability',
-    'loan': 'bibs/{mms_id}/holdings/{holding_id}/items/{item_pid}/loans'
+    'loan': 'bibs/{mms_id}/holdings/{holding_id}/items/{item_pid}/loans',
+    'requested_resources': 'task-lists/requested-resources'
 }
 
 MAX_CALLS_PER_SEC = 25
@@ -81,7 +84,7 @@ class Alma(object):
             headers['Content-Type'] = FORMATS[content_type]
         return headers
 
-    def request(self, httpmethod, resource, ids, params={}, data=None,
+    def request(self, httpmethod, resource, ids={}, params={}, data=None,
                 accept='json', content_type=None):
         response = requests.request(
             method=httpmethod,
@@ -257,6 +260,11 @@ class Alma(object):
     def del_digrep(self, mms_id, rep_id):
         pass
 
+    def get_requested_resources(self, library=__library__,
+            circ_desk = __circ_desk__):
+        params = {'library': library, 'circ_desk': circ_desk}
+        response = self.request('GET', 'requested_resources', params=params)
+        return self.extract_content(response)
 
     '''
     Below are coroutine methods.
