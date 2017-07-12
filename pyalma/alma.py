@@ -257,30 +257,6 @@ class Alma(object):
     def del_digrep(self, mms_id, rep_id):
         pass
 
-    '''
-    Below are convenience methods that return Record objects instead of
-    response data
-    '''
-
-    def bib(self, mms_id):
-        data = self.get_bib(mms_id)
-        return records.Bib(data)
-
-    def holdings(self, mms_id):
-        data = self.get_holdings(mms_id)
-        return records.Holdings(data)
-
-    def holding(self, mms_id, holding_id):
-        data = self.get_holding(mms_id, holding_id)
-        return records.Holding(data)
-
-    def items(self, mms_id, holding_id=None):
-        data = self.get_items(mms_id, holding_id)
-        return records.Items(data)
-
-    def item(self, mms_id, holding_id, item_pid):
-        data = self.get_item(mms_id, holding_id, item_pid)
-        return records.Item(data)
 
     '''
     Below are coroutine methods.
