@@ -9,7 +9,7 @@ setup(
     author = 'Getty Research Institute',
     author_email = 'jgomez@getty.edu',
     url = 'https://stash.getty.edu/projects/GRIIS/repos/pyalma/browse',
-    install_requires = ['pymarc', 'requests', 'aiohttp'],
+    install_requires = ['pymarc', 'requests', 'aiohttp==1.3', 'ratelimiter'],
     classifiers = [
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
