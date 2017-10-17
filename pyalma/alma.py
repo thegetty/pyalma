@@ -46,11 +46,14 @@ RESOURCES = {
         'bibs/{mms_id}/holdings/{holding_id}/items/' +
         '{item_pid}/booking-availability',
     'loan': 'bibs/{mms_id}/holdings/{holding_id}/items/{item_pid}/loans',
-    'requested_resources': 'task-lists/requested-resources'
+    'requested_resources': 'task-lists/requested-resources',
+    'users': 'users',
+    'user': 'users/{user_id}'
 }
 
 MAX_CALLS_PER_SEC = 25
 SEMAPHORE_LIM = 500
+
 
 class Alma(object):
 
@@ -191,7 +194,6 @@ class Alma(object):
                                 data=data, content_type=content_type, accept=accept)
         return self.extract_content(response)
 
-
     def post_item_request(self, mms_id, holding_id, item_pid, data,
                           content_type='json', accept='json'):
         response = self.request('POST', 'item_requests',
@@ -205,7 +207,7 @@ class Alma(object):
         response = self.request('PUT', 'bib_request',
                                 {'mms_id': mms_id,
                                  'request_id': request_id},
-                                  data=data, content_type=content_type, accept=accept)
+                                data=data, content_type=content_type, accept=accept)
         return self.extract_content(response)
 
     def put_item_request(self, mms_id, holding_id, item_pid, request_id,
@@ -246,6 +248,22 @@ class Alma(object):
                                 accept=accept)
         return self.extract_content(response)
 
+    def get_users(self, accept='json'):
+        response = self.request('GET', 'users', accept=accept)
+        return self.extract_content(response)
+
+    def get_user(self, user_id, accept='json'):
+        response = self.request('GET', 'user', {'user_id': user_id},
+                                accept=accept)
+        return self.extract_content(response)
+
+    def put_user(self, user_id, data, content_type='json',
+                 accept='json'):
+        response = self.request('PUT', 'user',
+                                {'user_id': user_id}, data=data,
+                                content_type=content_type, accept=accept)
+        return self.extract_content(response)
+
     def get_digreps(self, mms_id, accept='json'):
         pass
 
@@ -259,7 +277,7 @@ class Alma(object):
         pass
 
     def get_requested_resources(self, library=__library__,
-            circ_desk = __circ_desk__):
+                                circ_desk=__circ_desk__):
         params = {'library': library, 'circ_desk': circ_desk}
         response = self.request('GET', 'requested_resources', params=params)
         return self.extract_content(response)
@@ -271,7 +289,7 @@ class Alma(object):
     '''
 
     async def cor_request(self, httpmethod, resource, ids, session, params={},
-                              data=None, accept='xml', content_type=None, max_attempts=5):
+                          data=None, accept='xml', content_type=None, max_attempts=5):
         """
         Asynchronous request method
         Uses session.request, an aiohttp method
@@ -324,7 +342,6 @@ class Alma(object):
                             return result
                 else:
                     return (ids, status, msg)
-
 
     async def cor_bound_request(self, sem, httpmethod, resource, ids, session, params={},
                                 data=None, accept='xml', content_type='xml'):
@@ -500,8 +517,6 @@ class Alma(object):
             loop.close()
         return responses
 
-
-
     def cor_get_bib_requests(self, input_params, accept='xml'):
         # input_params includes mms_id
         loop = asyncio.get_event_loop()
@@ -663,6 +678,7 @@ class Alma(object):
 
     def cor_del_digrep(self, input_params, rep_id):
         pass
+
 
 class HTTPError(Exception):
 
